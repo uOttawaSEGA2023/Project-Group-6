@@ -26,7 +26,7 @@ public class SignUpPage extends AppCompatActivity {
 
         Health = findViewById(R.id.healthcard_input);
         Employee = findViewById(R.id.employee_input);
-        Specialties = findViewById(R.id.specialties_input);
+        //Specialties = findViewById(R.id.specialties_input);
         StartSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

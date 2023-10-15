@@ -4,11 +4,11 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class DBConnector extends SQLiteOpenHelper {
-    private static final String DB_NAME = "SEG2105DB";
+public class DBHelper extends SQLiteOpenHelper {
+    private static final String DB_NAME = "SEG2105DB.db";
     private static final int DB_VERSION = 1;
 
-    public DBConnector(Context context) {
+    public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
     }
 
@@ -27,7 +27,20 @@ public class DBConnector extends SQLiteOpenHelper {
                     "specialties TEXT," +
                     "user_type TEXT CHECK (user_type IN ('admin', 'patient', 'doctor'))" +
                 ")";
+
         sqLiteDatabase.execSQL(tableCreationQuery);
+
+        String[] valuesToInsert = new String[]{"Admin", "Admin", "admin@admin.com", "Hello123", "1234567890", "123 Admin Dr.", DBManager.UserType.ADMINISTRATOR.type};
+        sqLiteDatabase.execSQL("INSERT INTO users (" +
+                    "firstname, " +
+                    "lastname, " +
+                    "email, " +
+                    "password, " +
+                    "telephone, " +
+                    "address, " +
+                    "user_type" +
+                ") " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
     }
 
     @Override

@@ -10,6 +10,8 @@ import android.view.View;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.regex.Pattern;
+
 public class MainActivity extends AppCompatActivity {
     private View view;
     private Intent homeIntent;
@@ -42,7 +44,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loginBtn.setOnClickListener(view -> {
+            if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
+            if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
+
             DBManager.UserType userType = db.userExists(email.getText().toString(), password.getText().toString());
+
             if (userType != null) { // user exists
                 homeIntent.putExtra("userType", userType.type);
                 startActivity(homeIntent);
@@ -50,6 +56,17 @@ public class MainActivity extends AppCompatActivity {
                invalidCredentialsPopup.show();
             }
         });
+    }
+    public boolean validEmail(String email) {
+        //valid email format
+        String emailRegex = "[a-zA-Z0-9._-]+@[a-zA-Z]+\\.+[a-zA-Z]+";
+        return Pattern.matches(emailRegex, email);
+    }
+
+    public boolean validPassword(String password) {
+        //Minimum 8 characters, min one uppercase letter, min one number
+        String passwordRegex = "^(?=.*[A-Z])(?=.*\\d).{8,}$";
+        return Pattern.matches(passwordRegex, password);
     }
 
     @Override

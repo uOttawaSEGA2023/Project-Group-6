@@ -7,7 +7,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 public class Home extends AppCompatActivity {
-    private DBManager.UserType userType;
+    private UserType userType;
     private TextView userTypeText;
     private Button logoutBtn;
     @Override
@@ -20,7 +20,7 @@ public class Home extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {
-            userType = DBManager.UserType.fromString(intent.getStringExtra("userType"));
+            userType = UserType.fromString(intent.getStringExtra("userType"));
             userTypeText.append(userType.type);
         }
 

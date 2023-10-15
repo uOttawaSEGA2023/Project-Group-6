@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.regex.Pattern;
 
 public class SignUpPage extends AppCompatActivity {
-    private DBManager.UserType userType = DBManager.UserType.PATIENT;
+    private UserType userType = UserType.PATIENT;
     private Button backBtn;
     private Button isPatientBtn;
     private Button isDoctorBtn;
@@ -140,23 +140,23 @@ public class SignUpPage extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                if(!validName( firstName.getText().toString())){ Snackbar.make(view,"Enter a valid first name",Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validName( lastName.getText().toString())){ Snackbar.make(view,"Enter a valid last name",Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
+                if(!validName( firstName.getText().toString())){ Snackbar.make(view,"Enter a valid first name", Snackbar.LENGTH_SHORT).show(); return;}
+                if(!validName( lastName.getText().toString())){ Snackbar.make(view,"Enter a valid last name", Snackbar.LENGTH_SHORT).show(); return;}
+                if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com", Snackbar.LENGTH_SHORT).show(); return;}
 
-                if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validAddress( address.getText().toString())){ Snackbar.make(view,"Enter valid address (no special characters)",Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validPhoneNumber( phoneNumber.getText().toString())){ Snackbar.make(view,"Enter a valid phone number (10 digits)",Snackbar.LENGTH_SHORT).show(); return;}
+                if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number", Snackbar.LENGTH_SHORT).show(); return;}
+                if(!validAddress( address.getText().toString())){ Snackbar.make(view,"Enter valid address (no special characters)", Snackbar.LENGTH_SHORT).show(); return;}
+                if(!validPhoneNumber( phoneNumber.getText().toString())){ Snackbar.make(view,"Enter a valid phone number (10 digits)", Snackbar.LENGTH_SHORT).show(); return;}
 
-                if (userType.equals(DBManager.UserType.DOCTOR)) {
+                if (userType.equals(UserType.DOCTOR)) {
                     if(!validEmployeeNumber( employeeNumber.getText().toString())){ Snackbar.make(view,"Enter a valid Employee number (only numbers)",Snackbar.LENGTH_SHORT).show(); return;}
-                    if(!validSpecialties( specialties.getText().toString())){ Snackbar.make(view,"Please select specialties"+specialties.getText().toString(),Snackbar.LENGTH_SHORT).show(); return;}
+                    if(!validSpecialties( specialties.getText().toString())){ Snackbar.make(view,"Please select specialties",Snackbar.LENGTH_SHORT).show(); return;}
 
                     Doctor doctor = new Doctor(
                             specialties.getText().toString(),
                             firstName.getText().toString(),
                             lastName.getText().toString(),
-                            email.getText().toString(),
+                            email.getText().toString().toLowerCase(),
                             password.getText().toString(),
                             phoneNumber.getText().toString(),
                             address.getText().toString(),
@@ -164,14 +164,14 @@ public class SignUpPage extends AppCompatActivity {
                     );
                     db.addDoctor(doctor);
                 }
-                else if (userType.equals(DBManager.UserType.PATIENT)) {
-                    if(!validHealthCard( healthCardNumber.getText().toString())){ Snackbar.make(view,"Enter a valid health card number (10-12 numbers)",Snackbar.LENGTH_SHORT).show(); return;}
+                else if (userType.equals(UserType.PATIENT)) {
+                    if(!validHealthCard( healthCardNumber.getText().toString())){ Snackbar.make(view,"Enter a valid health card number (10-12 numbers)", Snackbar.LENGTH_SHORT).show(); return;}
 
                     Patient patient = new Patient(
                             healthCardNumber.getText().toString(),
                             firstName.getText().toString(),
                             lastName.getText().toString(),
-                            email.getText().toString(),
+                            email.getText().toString().toLowerCase(),
                             password.getText().toString(),
                             phoneNumber.getText().toString(),
                             address.getText().toString()
@@ -197,7 +197,7 @@ public class SignUpPage extends AppCompatActivity {
                 healthCardNumber.setVisibility(View.VISIBLE);
                 employeeNumber.setVisibility(View.GONE);
                 specialties.setVisibility(View.GONE);
-                userType = DBManager.UserType.PATIENT;
+                userType = UserType.PATIENT;
             }
         });
 
@@ -208,7 +208,7 @@ public class SignUpPage extends AppCompatActivity {
                 healthCardNumber.setVisibility(View.GONE);
                 employeeNumber.setVisibility(View.VISIBLE);
                 specialties.setVisibility(View.VISIBLE);
-                userType = DBManager.UserType.DOCTOR;
+                userType = UserType.DOCTOR;
             }
         });
 

@@ -8,7 +8,7 @@ public class Doctor extends User {
         super(firstName, lastName, email, password, telephone, address);
         this.specialties = specialties;
         this.employeeNumber = employeeNumber;
-        setUserType(DBManager.UserType.DOCTOR);
+        setUserType(UserType.DOCTOR);
     }
 
     public String getSpecialties() {

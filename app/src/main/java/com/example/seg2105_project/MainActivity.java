@@ -20,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     private Button loginBtn;
     private EditText email;
     private EditText password;
-    private Snackbar invalidCredentialsPopup;
     private DBManager db;
 
     @Override
@@ -35,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
         signUpBtn = findViewById(R.id.signUp);
         email = findViewById(R.id.email_input);
         password = findViewById(R.id.password_input);
-        invalidCredentialsPopup = Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT);
         homeIntent = new Intent(this, Home.class);
         signUpIntent = new Intent(this, SignUpPage.class);
 
@@ -47,13 +45,13 @@ public class MainActivity extends AppCompatActivity {
             if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
             if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
 
-            DBManager.UserType userType = db.userExists(email.getText().toString(), password.getText().toString());
+            UserType userType = db.userExists(email.getText().toString().toLowerCase(), password.getText().toString());
 
             if (userType != null) { // user exists
                 homeIntent.putExtra("userType", userType.type);
                 startActivity(homeIntent);
             } else { // user does not exist -> invalid credentials
-               invalidCredentialsPopup.show();
+                Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT).show();
             }
         });
     }

@@ -16,7 +16,7 @@ public class User {
     private String password;
     private String telephone;
     private String address;
-    private DBManager.UserType userType;
+    private UserType userType;
 
     public String getFirstName() {
         return this.firstName;
@@ -43,7 +43,7 @@ public class User {
     }
 
 
-    public DBManager.UserType getUserType() {
+    public UserType getUserType() {
         return this.userType;
     }
 
@@ -72,7 +72,7 @@ public class User {
         this.address = address;
     }
 
-    public void setUserType(DBManager.UserType userType) {
+    public void setUserType(UserType userType) {
         this.userType = userType;
     }
 }

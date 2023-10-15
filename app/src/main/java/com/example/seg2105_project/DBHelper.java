@@ -30,7 +30,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.execSQL(tableCreationQuery);
 
-        String[] valuesToInsert = new String[]{"Admin", "Admin", "admin@admin.com", "Hello123", "1234567890", "123 Admin Dr.", DBManager.UserType.ADMINISTRATOR.type};
+        String[] valuesToInsert = new String[]{"Admin", "Admin", "admin@admin.com", "Hello123", "1234567890", "123 Admin Dr.", UserType.ADMINISTRATOR.type};
         sqLiteDatabase.execSQL("INSERT INTO users (" +
                     "firstname, " +
                     "lastname, " +

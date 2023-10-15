@@ -1,13 +1,22 @@
 package com.example.seg2105_project;
 
 public class User {
+    public User(String firstName, String lastName, String email, String password, String telephone, String address) {
+        setFirstName(firstName);
+        setLastName(lastName);
+        setEmail(email);
+        setPassword(password);
+        setTelephone(telephone);
+        setAddress(address);
+    }
+
     private String firstName;
     private String lastName;
     private String email;
     private String password;
     private String telephone;
     private String address;
-    private DBOperations.UserType userType;
+    private DBManager.UserType userType;
 
     public String getFirstName() {
         return this.firstName;
@@ -34,7 +43,7 @@ public class User {
     }
 
 
-    public DBOperations.UserType getUserType() {
+    public DBManager.UserType getUserType() {
         return this.userType;
     }
 
@@ -63,7 +72,7 @@ public class User {
         this.address = address;
     }
 
-    public void setUserType(DBOperations.UserType userType) {
+    public void setUserType(DBManager.UserType userType) {
         this.userType = userType;
     }
 }

@@ -21,7 +21,7 @@
         tools:visibility="visible" />
 
     <Button
-        android:id="@+id/patient"
+        android:id="@+id/is_patient"
         android:layout_width="149dp"
         android:layout_height="59dp"
         android:text="Patient"
@@ -44,7 +44,7 @@
         app:layout_constraintVertical_bias="0.947" />
 
     <Button
-        android:id="@+id/doctor"
+        android:id="@+id/is_doctor"
         android:layout_width="144dp"
         android:layout_height="62dp"
         android:text="Doctor"
@@ -152,7 +152,7 @@
         app:layout_constraintHorizontal_bias="0.575"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.632" />
+        app:layout_constraintVertical_bias="0.711" />
 
     <EditText
         android:id="@+id/phonenumber_input"
@@ -160,13 +160,13 @@
         android:layout_height="54dp"
         android:ems="10"
         android:hint="Phone #"
-        android:inputType="text"
+        android:inputType="phone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.575"
+        app:layout_constraintHorizontal_bias="0.585"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.711" />
+        app:layout_constraintVertical_bias="0.632" />
 
     <Button
         android:id="@+id/back_input"
@@ -189,6 +189,7 @@
         android:layout_marginEnd="42dp"
         android:layout_marginBottom="62dp"
         android:entries="@array/doctor_specialties"
+        android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/submit"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"

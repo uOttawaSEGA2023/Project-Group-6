@@ -4,9 +4,10 @@ public class Doctor extends User {
     private String specialties;
     private int employeeNumber;
 
-    public Doctor(String specialties) {
-        setUserType(DBOperations.UserType.DOCTOR);
+    public Doctor(String specialties, String firstName, String lastName, String email, String password, String telephone, String address) {
+        super(firstName, lastName, email, password, telephone, address);
         this.specialties = specialties;
+        setUserType(DBManager.UserType.DOCTOR);
     }
 
     public String getSpecialties() {

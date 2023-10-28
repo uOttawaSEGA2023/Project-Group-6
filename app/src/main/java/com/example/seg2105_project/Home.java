@@ -67,15 +67,17 @@ public class Home extends AppCompatActivity {
             userTypeText.append(userType.type);
         }
 
-        //hide logout button and text by default
-        logoutBtn.setVisibility(View.INVISIBLE);
-        userTypeText.setVisibility(View.INVISIBLE);
+        //hide logout button, text and rejection list by default
+        logoutBtn.setVisibility(View.GONE);
+        userTypeText.setVisibility(View.GONE);
+        rectangleContainer1.setVisibility(View.GONE);
 
         cancelbutton.setOnClickListener(view -> {
-            logoutBtn.setVisibility(View.VISIBLE);
-            userTypeText.setVisibility(View.VISIBLE);
+            logoutBtn.setVisibility(View.GONE);
+            userTypeText.setVisibility(View.GONE);
             rectangleContainer.setVisibility(View.GONE);
 
+            rectangleContainer1.setVisibility(view.VISIBLE);
         });
 
         logoutBtn.bringToFront();
@@ -84,8 +86,9 @@ public class Home extends AppCompatActivity {
         });
 
         homebutton.setOnClickListener(view -> {
-            logoutBtn.setVisibility(View.INVISIBLE);
-            userTypeText.setVisibility(View.INVISIBLE);
+            logoutBtn.setVisibility(View.GONE);
+            userTypeText.setVisibility(View.GONE);
+            rectangleContainer1.setVisibility(View.GONE);
 
             //show requests
             rectangleContainer.setVisibility(view.VISIBLE);
@@ -96,7 +99,8 @@ public class Home extends AppCompatActivity {
             userTypeText.setVisibility(View.VISIBLE);
 
             //hide requests
-            rectangleContainer.setVisibility(View.INVISIBLE);
+            rectangleContainer.setVisibility(View.GONE);
+            rectangleContainer1.setVisibility(View.GONE);
         });
 
 
@@ -266,7 +270,7 @@ public class Home extends AppCompatActivity {
 
             });
 
-            rectangleContainer.addView(container);
+            rectangleContainer1.addView(container);
         }
 
     }

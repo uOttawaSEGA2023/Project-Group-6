@@ -5,6 +5,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
 import android.content.Context;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+
 public class DBManager {
     private static DBHelper dbHelper;
     private SQLiteDatabase db;
@@ -24,7 +28,7 @@ public class DBManager {
         db.close();
     }
 
-    public void addPatient(Patient patient) {
+    public void sendPatientRegistrationRequest(Patient patient) {
         String firstName = patient.getFirstName();
         String lastName = patient.getLastName();
         String email = patient.getEmail();
@@ -36,7 +40,7 @@ public class DBManager {
 
         Object[] valuesToInsert = new Object[]{firstName, lastName, email, password, telephone, address, healthCardNumber, userType};
 
-        db.execSQL("INSERT INTO users (" +
+        db.execSQL("INSERT INTO registration_requests (" +
                     "firstname, " +
                     "lastname, " +
                     "email, " +
@@ -46,10 +50,10 @@ public class DBManager {
                     "health_card_number, " +
                     "user_type" +
                 ") " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert); // prevents SQL injections
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
     }
 
-    public void addDoctor(Doctor doctor) {
+    public void sendDoctorRegistrationRequest(Doctor doctor) {
         String firstName = doctor.getFirstName();
         String lastName = doctor.getLastName();
         String email = doctor.getEmail();
@@ -62,7 +66,7 @@ public class DBManager {
 
         Object[] valuesToInsert = new Object[]{firstName, lastName, email, password, telephone, address, employeeNumber, specialties, userType};
 
-        db.execSQL("INSERT INTO users (" +
+        db.execSQL("INSERT INTO registration_requests (" +
                     "firstname, " +
                     "lastname, " +
                     "email, " +
@@ -73,7 +77,81 @@ public class DBManager {
                     "specialties, " +
                     "user_type" +
                 ") " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert); // prevents SQL injections
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+    }
+
+    public void approveRegistration(int requestID) {
+        String[] columnsToGet = new String[]{"firstname", "lastname", "email", "password", "telephone", "address", "user_type"};
+        Cursor cursor = db.query("registration_requests", columnsToGet, "id = ?", new String[]{Integer.toString(requestID)}, null, null ,null);
+        cursor.moveToFirst();
+
+        // getting a hash-map of the user's info
+        Map<String, Object> userInfo = new HashMap<>();
+        int currentColumnIndex;
+        for (String col : columnsToGet) {
+            currentColumnIndex = cursor.getColumnIndex(col);
+            userInfo.put(col, cursor.getString(currentColumnIndex));
+        }
+
+        UserType userType = UserType.fromString(userInfo.get("user_type").toString());
+        String[] additionalColumnsToGet;
+        if (userType.equals(UserType.DOCTOR)) { // DOCTOR
+            additionalColumnsToGet = new String[]{"employee_number", "specialties"};
+        } else { // PATIENT
+            additionalColumnsToGet = new String[]{"health_card_number"};
+        }
+
+        cursor = db.query("registration_requests", additionalColumnsToGet, "id = ?", new String[]{Integer.toString(requestID)}, null, null, null);
+        cursor.moveToFirst();
+        for (String col : additionalColumnsToGet) {
+            currentColumnIndex = cursor.getColumnIndex(col);
+            userInfo.put(col, cursor.getString(currentColumnIndex)); // BUG: for columns that are not strings, this is problematic
+        }
+        cursor.close();
+
+        // building the query to insert the user's info into the 'users' table
+        ArrayList<Object> valuesToInsert = new ArrayList<>();
+        StringBuilder queryBuilder = new StringBuilder(); // using StringBuilder instead of String since strings in Java are immutable (StringBuilder is faster)
+        queryBuilder.append("INSERT INTO users (");
+
+        for (Map.Entry<String, Object> entry : userInfo.entrySet()) {
+            queryBuilder.append(entry.getKey() + ", ");
+            valuesToInsert.add(entry.getValue());
+        }
+        queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length()); // remove the ", " from the end of the query at this point
+
+        queryBuilder.append(") VALUES (");
+        for (int i = 0; i < valuesToInsert.size(); i++) {
+            queryBuilder.append("?");
+        }
+        queryBuilder.append(")");
+
+        db.execSQL(queryBuilder.toString(), valuesToInsert.toArray()); // execute the built query
+
+        // delete the according registration request based on the doctor's employee number or the patient's health card number (employee and health card numbers are unique)
+        db.execSQL("DELETE FROM registration_requests WHERE " + (userType.equals(UserType.DOCTOR) ? "employee_number" : "health_card_number"),
+                new Object[]{userType.equals(UserType.DOCTOR) ? userInfo.get("employee_number") : userInfo.get("health_card_number")});
+    }
+
+    public void rejectRegistrationRequest(int requestID) {
+        db.execSQL("UPDATE registration_requests SET rejected = 1 WHERE id = ?;", new Object[]{requestID});
+    }
+
+    public ArrayList<Map<String, Object>> getRejectedRegistrationRequests() {
+        String[] columnsToGet = new String[]{"firstname", "lastname", "email", "telephone", "address", "user_type", "health_card_number", "employee_number", "specialties"}; // exclude 'password'
+        Cursor cursor = db.query("registration_requests", columnsToGet, "rejected = 1", null, null, null, null);
+        int currentColumnIndex;
+        ArrayList<Map<String, Object>> rejectedUsers = new ArrayList<>();
+        Map<String, Object> currentRejectedUser;
+        while (cursor.moveToNext()) {
+            currentRejectedUser = new HashMap<>();
+            for (String col : columnsToGet) {
+                currentColumnIndex = cursor.getColumnIndex(col);
+                currentRejectedUser.put(col, cursor.getString(currentColumnIndex));
+            }
+            rejectedUsers.add(currentRejectedUser);
+        }
+        return rejectedUsers;
     }
 
     public UserType userExists(String email, String password) throws IllegalArgumentException {

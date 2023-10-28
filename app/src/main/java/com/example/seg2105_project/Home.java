@@ -18,6 +18,10 @@ import android.view.Gravity;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
+import android.view.ViewGroup;
 
 public class Home extends AppCompatActivity {
     private UserType userType;
@@ -27,6 +31,8 @@ public class Home extends AppCompatActivity {
     private Button logoutBtn;
     private FloatingActionButton homebutton;
     private LinearLayout rectangleContainer;
+
+    private LinearLayout rectangleContainer1;
     private FloatingActionButton settingbutton;
 
     @Override
@@ -38,14 +44,19 @@ public class Home extends AppCompatActivity {
         logoutBtn = findViewById(R.id.logout_button);
         homebutton = findViewById(R.id.homebutton);
         settingbutton = findViewById(R.id.settingbutton);
-
+        cancelbutton = findViewById(R.id.cancelbutton);
         // Initialize the rectangleContainer
+
+        //main request
         rectangleContainer = findViewById(R.id.rectangleContainer);
 
         //fetch user requests and append them to view container
         db = new DBManager(this).open();
         ArrayList<Map<String, Object>>  userRequests = db.getRegistrationRequests();
-        if(!userRequests.isEmpty()) addRequestsToView(userRequests);
+        if(!userRequests.isEmpty()) addRequestsToView(userRequests);        //rejected request
+        rectangleContainer1 = findViewById(R.id.rectangleContainer1);
+
+
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {

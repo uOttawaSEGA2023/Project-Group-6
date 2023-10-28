@@ -123,8 +123,9 @@ public class DBManager {
 
         queryBuilder.append(") VALUES (");
         for (int i = 0; i < valuesToInsert.size(); i++) {
-            queryBuilder.append("?");
+            queryBuilder.append("?,");
         }
+        queryBuilder.delete(queryBuilder.length() - 1, queryBuilder.length()); // remove the last comma
         queryBuilder.append(")");
 
         db.execSQL(queryBuilder.toString(), valuesToInsert.toArray()); // execute the built query

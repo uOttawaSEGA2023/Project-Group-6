@@ -1,5 +1,6 @@
 package com.example.seg2105_project;
 
+import android.annotation.SuppressLint;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
@@ -143,6 +144,7 @@ public class DBManager {
         int currentColumnIndex;
         ArrayList<Map<String, Object>> rejectedUsers = new ArrayList<>();
         Map<String, Object> currentRejectedUser;
+
         while (cursor.moveToNext()) {
             currentRejectedUser = new HashMap<>();
             for (String col : columnsToGet) {
@@ -151,7 +153,38 @@ public class DBManager {
             }
             rejectedUsers.add(currentRejectedUser);
         }
+
         return rejectedUsers;
+    }
+
+    public ArrayList<Map<String, Object>> getRegistrationRequests(){
+        Cursor rows = db.rawQuery("SELECT * FROM registration_requests WHERE rejected=0", null);
+
+        ArrayList<Map<String, Object>> users = new ArrayList<>();
+
+        String[] columns = new String[]{"id", "firstname", "lastname", "email", "telephone", "address", "user_type", "health_card_number", "employee_number", "specialties"};
+
+        while(rows.moveToNext()){
+            Map<String, Object> request = new HashMap<>();
+            @SuppressLint("Range") String user_type = rows.getString(rows.getColumnIndex("user_type"));
+
+            for(String col:columns){
+                int columnIndex = rows.getColumnIndex(col);
+                request.put(col, rows.getString(columnIndex));
+            }
+
+            if(user_type == UserType.DOCTOR.toString()){
+                request.remove("health_card_number");
+            }else{
+                request.remove("specialties");
+                request.remove("employee_number");
+            }
+
+            users.add(request);
+        }
+        rows.close();
+
+        return users;
     }
 
     public UserType userExists(String email, String password) throws IllegalArgumentException {

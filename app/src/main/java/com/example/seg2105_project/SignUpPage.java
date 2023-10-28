@@ -162,7 +162,7 @@ public class SignUpPage extends AppCompatActivity {
                             address.getText().toString(),
                             Integer.parseInt(employeeNumber.getText().toString())
                     );
-                    db.addDoctor(doctor);
+                    db.sendDoctorRegistrationRequest(doctor);
                 }
                 else if (userType.equals(UserType.PATIENT)) {
                     if(!validHealthCard( healthCardNumber.getText().toString())){ Snackbar.make(view,"Enter a valid health card number (10-12 numbers)", Snackbar.LENGTH_SHORT).show(); return;}
@@ -176,7 +176,7 @@ public class SignUpPage extends AppCompatActivity {
                             phoneNumber.getText().toString(),
                             address.getText().toString()
                     );
-                    db.addPatient(patient);
+                    db.sendPatientRegistrationRequest(patient);
                 }
 
                 finish(); // go back to MainActivity

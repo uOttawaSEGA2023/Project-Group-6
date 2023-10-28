@@ -3,6 +3,7 @@ package com.example.seg2105_project;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -15,17 +16,18 @@ import android.widget.ImageButton;
 import android.widget.FrameLayout;
 import android.view.Gravity;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 public class Home extends AppCompatActivity {
     private UserType userType;
+    private DBManager db;
 
-    private FrameLayout container;
     private TextView userTypeText;
     private Button logoutBtn;
     private FloatingActionButton homebutton;
     private LinearLayout rectangleContainer;
     private FloatingActionButton settingbutton;
-
-    private int rectangleCounter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,11 +38,14 @@ public class Home extends AppCompatActivity {
         logoutBtn = findViewById(R.id.logout_button);
         homebutton = findViewById(R.id.homebutton);
         settingbutton = findViewById(R.id.settingbutton);
-        // Initialize the rectangleContainer
 
+        // Initialize the rectangleContainer
         rectangleContainer = findViewById(R.id.rectangleContainer);
 
-
+        //fetch user requests and append them to view container
+        db = new DBManager(this).open();
+        ArrayList<Map<String, Object>>  userRequests = db.getRegistrationRequests();
+        if(!userRequests.isEmpty()) addRequestsToView(userRequests);
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {
@@ -48,6 +53,11 @@ public class Home extends AppCompatActivity {
             userTypeText.append(userType.type);
         }
 
+        //hide logout button and text by default
+        logoutBtn.setVisibility(View.INVISIBLE);
+        userTypeText.setVisibility(View.INVISIBLE);
+
+        logoutBtn.bringToFront();
         logoutBtn.setOnClickListener(view -> {
             finish();
         });
@@ -55,95 +65,112 @@ public class Home extends AppCompatActivity {
         homebutton.setOnClickListener(view -> {
             logoutBtn.setVisibility(View.INVISIBLE);
             userTypeText.setVisibility(View.INVISIBLE);
-            RequestsLoad(1); // Call the method to add a rectangle
+
+            //show requests
+            rectangleContainer.setVisibility(view.VISIBLE);
         });
 
         settingbutton.setOnClickListener(view -> {
             logoutBtn.setVisibility(View.VISIBLE);
             userTypeText.setVisibility(View.VISIBLE);
-            RequestsLoad(0);
 
+            //hide requests
+            rectangleContainer.setVisibility(View.INVISIBLE);
         });
 
 
     }
 
+    private void addRequestsToView(ArrayList<Map<String, Object>> requests) {
+        for(int i =0; i <requests.size(); i++){
+            FrameLayout container = new FrameLayout(this);
+
+            ImageView rectangle = new ImageView(this);
+            rectangle.setImageResource(R.drawable.curve);
+
+            FrameLayout.LayoutParams imageLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            imageLayoutParams.gravity = Gravity.TOP | Gravity.START;
+
+            /*************** Accept *********/
+            Button acceptButton = new Button(this);
+            acceptButton.setText("Accept");
+
+            FrameLayout.LayoutParams acceptButtonLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            acceptButtonLayoutParams.gravity = Gravity.TOP | Gravity.START;
+
+            /*************** Delete *********/
+            Button deleteButton = new Button(this);
+            deleteButton.setText("Delete");
+
+            FrameLayout.LayoutParams deleteButtonLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            deleteButtonLayoutParams.gravity = Gravity.BOTTOM;
+
+            /*************** Decline *********/
+            Button declineButton = new Button(this);
+            declineButton.setText("Decline");
+
+            FrameLayout.LayoutParams declineButtonLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            declineButtonLayoutParams.gravity = Gravity.TOP | Gravity.END;
+
+            /*************** Add user info to view *********/
+            Map<String, Object> user = requests.get(i);
+            TextView user_info = new TextView(this);
+            StringBuilder info = new StringBuilder();
+
+            for(String col:user.keySet()){
+                info.append(col+": "+ user.get(col) +"\n");
+            }
+
+            user_info.setText(info);
+
+            FrameLayout.LayoutParams nameLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            nameLayoutParams.gravity = Gravity.CENTER;
+
+            container.addView(rectangle, imageLayoutParams);
+            container.addView(acceptButton, acceptButtonLayoutParams);
+            container.addView(deleteButton, deleteButtonLayoutParams);
+            container.addView(declineButton, declineButtonLayoutParams);
+            container.addView(user_info, nameLayoutParams);
 
 
-    private void RequestsLoad(int visible) {
+            /*************** Button interactions *********/
+            int request_id = Integer.parseInt((String)user.get("id"));
 
-        container = new FrameLayout(this);
+            acceptButton.setOnClickListener(view -> {
+                db.approveRegistration(request_id);
+                deleteButton.performClick();
+            });
 
-        if (visible == View.VISIBLE) {
-            container.setVisibility(View.VISIBLE);
-        } else if (visible == View.INVISIBLE) {
-            container.setVisibility(View.INVISIBLE);
+            declineButton.setOnClickListener(view -> {
+                db.rejectRegistrationRequest(request_id);
+                deleteButton.performClick();
+            });
+
+            deleteButton.setOnClickListener(view -> {
+                container.removeView(deleteButton);
+                container.removeView(declineButton);
+                container.removeView(user_info);
+                rectangleContainer.removeView(container);
+
+            });
+
+            rectangleContainer.addView(container);
         }
-
-        ImageView rectangle = new ImageView(this);
-        rectangle.setImageResource(R.drawable.curve);
-
-        FrameLayout.LayoutParams imageLayoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        imageLayoutParams.gravity = Gravity.TOP | Gravity.START;
-
-        Button acceptButton = new Button(this);
-        acceptButton.setText("Accept");
-
-        FrameLayout.LayoutParams acceptButtonLayoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        acceptButtonLayoutParams.gravity = Gravity.TOP | Gravity.START;
-           //////////////////////////////OPTIONAL JUST TO DELETE PATIENT
-        Button deleteButton = new Button(this);
-        deleteButton.setText("Delete");
-
-        FrameLayout.LayoutParams deleteButtonLayoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        deleteButtonLayoutParams.gravity = Gravity.BOTTOM;
-       ////////////////////////////////////OPTIONAL
-        Button declineButton = new Button(this);
-        declineButton.setText("Decline");
-
-        FrameLayout.LayoutParams declineButtonLayoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        declineButtonLayoutParams.gravity = Gravity.TOP | Gravity.END;
-
-        TextView patientName = new TextView(this);
-        patientName.setText("Patient Name:" + String.valueOf(rectangleCounter));
-
-        FrameLayout.LayoutParams nameLayoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        nameLayoutParams.gravity = Gravity.CENTER;
-
-        container.addView(rectangle, imageLayoutParams);
-        container.addView(acceptButton, acceptButtonLayoutParams);
-        container.addView(deleteButton, deleteButtonLayoutParams);
-        container.addView(declineButton, declineButtonLayoutParams);
-        container.addView(patientName, nameLayoutParams);
-
-
-        deleteButton.setOnClickListener(view -> {
-            container.removeView(deleteButton);
-            container.removeView(declineButton);
-            container.removeView(patientName);
-            rectangleContainer.removeView(container);
-            rectangleCounter--;
-
-        });
-
-        rectangleContainer.addView(container);
-
-        rectangleCounter++;
 
     }
 

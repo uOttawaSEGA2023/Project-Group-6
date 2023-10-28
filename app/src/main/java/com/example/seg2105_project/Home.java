@@ -129,16 +129,6 @@ public class Home extends AppCompatActivity {
             );
             acceptButtonLayoutParams.gravity = Gravity.TOP | Gravity.START;
 
-            /*************** Delete *********/
-            Button deleteButton = new Button(this);
-            deleteButton.setText("Delete");
-
-            FrameLayout.LayoutParams deleteButtonLayoutParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-            deleteButtonLayoutParams.gravity = Gravity.BOTTOM;
-
             /*************** Decline *********/
             Button declineButton = new Button(this);
             declineButton.setText("Decline");
@@ -168,7 +158,6 @@ public class Home extends AppCompatActivity {
 
             container.addView(rectangle, imageLayoutParams);
             container.addView(acceptButton, acceptButtonLayoutParams);
-            container.addView(deleteButton, deleteButtonLayoutParams);
             container.addView(declineButton, declineButtonLayoutParams);
             container.addView(user_info, nameLayoutParams);
 
@@ -178,20 +167,19 @@ public class Home extends AppCompatActivity {
 
             acceptButton.setOnClickListener(view -> {
                 db.approveRegistration(request_id);
-                deleteButton.performClick();
+
+                rectangleContainer.removeView(container);
             });
 
+            int finalI = i;
             declineButton.setOnClickListener(view -> {
                 db.rejectRegistrationRequest(request_id);
-                deleteButton.performClick();
-            });
-
-            deleteButton.setOnClickListener(view -> {
-                container.removeView(deleteButton);
-                container.removeView(declineButton);
-                container.removeView(user_info);
                 rectangleContainer.removeView(container);
 
+                //add request to rejected List
+                ArrayList<Map<String, Object>> rejected_user= new ArrayList<>();
+                rejected_user.add(requests.get(finalI));
+                addToRejectionList(rejected_user);
             });
 
             rectangleContainer.addView(container);
@@ -222,16 +210,6 @@ public class Home extends AppCompatActivity {
             );
             acceptButtonLayoutParams.gravity = Gravity.TOP | Gravity.START;
 
-            /*************** Delete *********/
-            Button deleteButton = new Button(this);
-            deleteButton.setText("Delete");
-
-            FrameLayout.LayoutParams deleteButtonLayoutParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-            deleteButtonLayoutParams.gravity = Gravity.BOTTOM;
-
             /*************** Add user info to view *********/
             Map<String, Object> user = requests.get(i);
             TextView user_info = new TextView(this);
@@ -251,7 +229,6 @@ public class Home extends AppCompatActivity {
 
             container.addView(rectangle, imageLayoutParams);
             container.addView(acceptButton, acceptButtonLayoutParams);
-            container.addView(deleteButton, deleteButtonLayoutParams);
             container.addView(user_info, nameLayoutParams);
 
 
@@ -260,14 +237,8 @@ public class Home extends AppCompatActivity {
 
             acceptButton.setOnClickListener(view -> {
                 db.approveRegistration(request_id);
-                deleteButton.performClick();
-            });
 
-            deleteButton.setOnClickListener(view -> {
-                container.removeView(deleteButton);
-                container.removeView(user_info);
-                rectangleContainer.removeView(container);
-
+                rectangleContainer1.removeView(container);
             });
 
             rectangleContainer1.addView(container);

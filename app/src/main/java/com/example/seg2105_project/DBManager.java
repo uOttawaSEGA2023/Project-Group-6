@@ -140,7 +140,7 @@ public class DBManager {
     }
 
     public ArrayList<Map<String, Object>> getRejectedRegistrationRequests() {
-        String[] columnsToGet = new String[]{"firstname", "lastname", "email", "telephone", "address", "user_type", "health_card_number", "employee_number", "specialties"}; // exclude 'password'
+        String[] columnsToGet = new String[]{"id","firstname", "lastname", "email", "telephone", "address", "user_type", "health_card_number", "employee_number", "specialties"}; // exclude 'password'
         Cursor cursor = db.query("registration_requests", columnsToGet, "rejected = 1", null, null, null, null);
         int currentColumnIndex;
         ArrayList<Map<String, Object>> rejectedUsers = new ArrayList<>();

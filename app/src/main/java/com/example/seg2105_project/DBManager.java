@@ -130,9 +130,7 @@ public class DBManager {
 
         db.execSQL(queryBuilder.toString(), valuesToInsert.toArray()); // execute the built query
 
-        // delete the according registration request based on the doctor's employee number or the patient's health card number (employee and health card numbers are unique)
-        db.execSQL("DELETE FROM registration_requests WHERE " + (userType.equals(UserType.DOCTOR) ? "employee_number" : "health_card_number"),
-                new Object[]{userType.equals(UserType.DOCTOR) ? userInfo.get("employee_number") : userInfo.get("health_card_number")});
+        db.execSQL("DELETE FROM registration_requests WHERE id=?", new Object[]{requestID});
     }
 
     public void rejectRegistrationRequest(int requestID) {

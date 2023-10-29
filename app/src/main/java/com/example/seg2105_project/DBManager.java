@@ -172,7 +172,7 @@ public class DBManager {
                 request.put(col, rows.getString(columnIndex));
             }
 
-            if(user_type == UserType.DOCTOR.toString()){
+            if(user_type.equals(UserType.DOCTOR.toString())){
                 request.remove("health_card_number");
             }else{
                 request.remove("specialties");

@@ -106,7 +106,7 @@ public class DBManager {
         cursor.moveToFirst();
         for (String col : additionalColumnsToGet) {
             currentColumnIndex = cursor.getColumnIndex(col);
-            userInfo.put(col, cursor.getString(currentColumnIndex)); // BUG: for columns that are not strings, this is problematic
+            userInfo.put(col, cursor.getString(currentColumnIndex));
         }
         cursor.close();
 
@@ -137,42 +137,56 @@ public class DBManager {
         db.execSQL("UPDATE registration_requests SET rejected = 1 WHERE id = ?;", new Object[]{requestID});
     }
 
+    @SuppressLint("Range")
     public ArrayList<Map<String, Object>> getRejectedRegistrationRequests() {
         String[] columnsToGet = new String[]{"id","firstname", "lastname", "email", "telephone", "address", "user_type", "health_card_number", "employee_number", "specialties"}; // exclude 'password'
         Cursor cursor = db.query("registration_requests", columnsToGet, "rejected = 1", null, null, null, null);
         int currentColumnIndex;
         ArrayList<Map<String, Object>> rejectedUsers = new ArrayList<>();
         Map<String, Object> currentRejectedUser;
+        String userType;
 
         while (cursor.moveToNext()) {
             currentRejectedUser = new HashMap<>();
+            userType = cursor.getString(cursor.getColumnIndex("user_type"));
+
             for (String col : columnsToGet) {
                 currentColumnIndex = cursor.getColumnIndex(col);
                 currentRejectedUser.put(col, cursor.getString(currentColumnIndex));
             }
+
+            if (userType.equals(UserType.DOCTOR.toString())) {
+                currentRejectedUser.remove("health_card_number");
+            } else {
+                currentRejectedUser.remove("specialties");
+                currentRejectedUser.remove("employee_number");
+            }
+
             rejectedUsers.add(currentRejectedUser);
         }
 
         return rejectedUsers;
     }
 
+    @SuppressLint("Range")
     public ArrayList<Map<String, Object>> getRegistrationRequests(){
         Cursor rows = db.rawQuery("SELECT * FROM registration_requests WHERE rejected=0", null);
 
         ArrayList<Map<String, Object>> users = new ArrayList<>();
 
         String[] columns = new String[]{"id", "firstname", "lastname", "email", "telephone", "address", "user_type", "health_card_number", "employee_number", "specialties"};
-
+        Map<String, Object> request;
+        String userType;
         while(rows.moveToNext()){
-            Map<String, Object> request = new HashMap<>();
-            @SuppressLint("Range") String user_type = rows.getString(rows.getColumnIndex("user_type"));
+            request = new HashMap<>();
+            userType = rows.getString(rows.getColumnIndex("user_type"));
 
             for(String col:columns){
                 int columnIndex = rows.getColumnIndex(col);
                 request.put(col, rows.getString(columnIndex));
             }
 
-            if(user_type.equals(UserType.DOCTOR.toString())){
+            if(userType.equals(UserType.DOCTOR.toString())){
                 request.remove("health_card_number");
             }else{
                 request.remove("specialties");

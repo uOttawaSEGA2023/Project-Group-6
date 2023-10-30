@@ -145,6 +145,7 @@ public class Home extends AppCompatActivity {
             StringBuilder info = new StringBuilder();
 
             for(String col:user.keySet()){
+                if (col.equalsIgnoreCase("id")) continue;
                 info.append(col+": "+ user.get(col) +"\n");
             }
 
@@ -216,6 +217,7 @@ public class Home extends AppCompatActivity {
             StringBuilder info = new StringBuilder();
 
             for(String col:user.keySet()){
+                if (col.equalsIgnoreCase("id")) continue;
                 info.append(col+": "+ user.get(col) +"\n");
             }
 

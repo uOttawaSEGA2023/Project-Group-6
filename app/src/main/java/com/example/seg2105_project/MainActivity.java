@@ -8,13 +8,19 @@ import android.widget.EditText;
 import android.content.Intent;
 import android.view.View;
 
+import com.example.seg2105_project.UI.AdminDashboard;
+import com.example.seg2105_project.UI.SignUpPage;
+import com.example.seg2105_project.UI.UserDashboard;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     private View view;
-    private Intent homeIntent;
+    private Intent adminDashboard;
+    private Intent userDashboard;
+
     private Intent signUpIntent;
     private Button signUpBtn;
     private Button loginBtn;
@@ -34,7 +40,10 @@ public class MainActivity extends AppCompatActivity {
         signUpBtn = findViewById(R.id.signUp);
         email = findViewById(R.id.email_input);
         password = findViewById(R.id.password_input);
-        homeIntent = new Intent(this, Home.class);
+
+        adminDashboard = new Intent(this, AdminDashboard.class);
+        userDashboard = new Intent(this, UserDashboard.class);
+
         signUpIntent = new Intent(this, SignUpPage.class);
 
         signUpBtn.setOnClickListener(view -> {
@@ -45,11 +54,21 @@ public class MainActivity extends AppCompatActivity {
             if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
             if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
 
-            UserType userType = db.userExists(email.getText().toString().toLowerCase(), password.getText().toString());
+            Map<String, String> userType = db.userExists(email.getText().toString().toLowerCase(), password.getText().toString());
 
-            if (userType != null) { // user exists
-                homeIntent.putExtra("userType", userType.type);
-                startActivity(homeIntent);
+            if (!userType.isEmpty()) { // user exists
+                if(userType.get("user_type").equalsIgnoreCase("admin")){
+                    adminDashboard.putExtra("userType", userType.get("user_type"));
+                    startActivity(adminDashboard);
+                    return;
+                }
+
+                userDashboard.putExtra("userType", userType.get("user_type"));
+                userDashboard.putExtra("approved", userType.get("approved"));
+                userDashboard.putExtra("rejected", userType.get("rejected"));
+
+                startActivity(userDashboard);
+
             } else { // user does not exist -> invalid credentials
                 Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT).show();
             }

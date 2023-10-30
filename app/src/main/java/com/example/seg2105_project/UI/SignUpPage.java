@@ -1,4 +1,4 @@
-package com.example.seg2105_project;
+package com.example.seg2105_project.UI;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -7,6 +7,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.example.seg2105_project.DBManager;
+import com.example.seg2105_project.Doctor;
+import com.example.seg2105_project.Patient;
+import com.example.seg2105_project.R;
+import com.example.seg2105_project.UserType;
 import com.google.android.material.snackbar.Snackbar;
 
 import androidx.annotation.Nullable;
@@ -149,7 +155,7 @@ public class SignUpPage extends AppCompatActivity {
                 if(!validPhoneNumber( phoneNumber.getText().toString())){ Snackbar.make(view,"Enter a valid phone number (10 digits)", Snackbar.LENGTH_SHORT).show(); return;}
 
                 if (userType.equals(UserType.DOCTOR)) {
-                    if(!validEmployeeNumber( employeeNumber.getText().toString())){ Snackbar.make(view,"Enter a valid Employee number (only numbers)",Snackbar.LENGTH_SHORT).show(); return;}
+                    if(!validEmployeeNumber( employeeNumber.getText().toString())){ Snackbar.make(view,"Enter a valid Employee number (4-10 digit ID)",Snackbar.LENGTH_SHORT).show(); return;}
                     if(!validSpecialties( specialties.getText().toString())){ Snackbar.make(view,"Please select specialties",Snackbar.LENGTH_SHORT).show(); return;}
 
                     Doctor doctor = new Doctor(
@@ -252,7 +258,7 @@ public class SignUpPage extends AppCompatActivity {
 
     public boolean validEmployeeNumber(String employeeNumber) {
         //Only nums and not empty
-        String employeeNumberRegex = "^[0-9]+$";
+        String employeeNumberRegex = "^\\d{4,10}$";
         return Pattern.matches(employeeNumberRegex, employeeNumber);
     }
 

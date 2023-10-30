@@ -1,29 +1,26 @@
-package com.example.seg2105_project;
+package com.example.seg2105_project.UI;
 
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.graphics.Color;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
+
+import com.example.seg2105_project.DBManager;
+import com.example.seg2105_project.R;
+import com.example.seg2105_project.UserType;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import android.widget.ImageButton;
+
 import android.widget.FrameLayout;
 import android.view.Gravity;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
 
-import android.view.ViewGroup;
-
-public class Home extends AppCompatActivity {
+public class AdminDashboard extends AppCompatActivity {
     private UserType userType;
     private DBManager db;
 

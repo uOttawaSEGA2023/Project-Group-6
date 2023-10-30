@@ -61,7 +61,7 @@ public class DBManager {
         String password = doctor.getPassword();
         String telephone = doctor.getTelephone();
         String address = doctor.getAddress();
-        int employeeNumber = doctor.getEmployeeNumber();
+        long employeeNumber = doctor.getEmployeeNumber();
         String specialties = doctor.getSpecialties();
         String userType = doctor.getUserType().type;
 
@@ -200,16 +200,39 @@ public class DBManager {
         return users;
     }
 
-    public UserType userExists(String email, String password) throws IllegalArgumentException {
+    public Map<String, String> userExists(String email, String password) throws IllegalArgumentException {
         String[] columnsToRetrieve = new String[]{"user_type"};
         String[] valuesToSearch = new String[]{email, password}; // values to search for in the DB
-        Cursor cursor = db.query("users", columnsToRetrieve, "email = ? AND password = ?", valuesToSearch, null, null ,null);
-        boolean userExists = cursor.moveToFirst();
+        boolean userExists;
+        Cursor cursor;
+        HashMap<String, String> user= new HashMap<>();
+
+        /********* Look in user's table **************/
+        cursor = db.query("users", columnsToRetrieve, "email = ? AND password = ?", valuesToSearch, null, null ,null);
+        userExists = cursor.moveToFirst();
         if (userExists) {
             int columnIndex = cursor.getColumnIndex("user_type");
-            return UserType.fromString(cursor.getString(columnIndex));
+            user.put("user_type", cursor.getString(columnIndex));
+            user.put("approved", "true");
+        } else {
+
+            /********* Look in registration_requests' table **************/
+            cursor = db.query("registration_requests", new String[]{"user_type", "rejected"}, "email = ? AND password = ?", valuesToSearch, null, null, null);
+            userExists = cursor.moveToFirst();
+            if (userExists) {
+                int user_type_i = cursor.getColumnIndex("user_type");
+                int rejected_i =  cursor.getColumnIndex("rejected");
+
+                user.put("user_type", cursor.getString(user_type_i));
+                user.put("approved", "false");
+
+                int rejected = cursor.getInt(rejected_i);
+                user.put("rejected", (rejected != 0)?"true":"false");
+
+
+            }
         }
         cursor.close();
-        return null;
+        return user;
     }
 }

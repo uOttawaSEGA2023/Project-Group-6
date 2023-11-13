@@ -1,26 +1,27 @@
 package com.example.seg2105_project.UI;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.app.DatePickerDialog;
-import android.os.Bundle;
 import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
+import android.widget.TimePicker;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.seg2105_project.DBManager;
 import com.example.seg2105_project.R;
 import com.example.seg2105_project.UserType;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.Calendar;
-import android.widget.TimePicker;
 import java.util.Locale;
-import android.os.Build;
 
 
-public class UserDashboard extends AppCompatActivity {
+public class DoctorDashboard extends AppCompatActivity {
     private UserType userType;
     private DBManager db;
     private TextView userTypeText;
@@ -52,7 +53,7 @@ public class UserDashboard extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.user_dashboard);
+        setContentView(R.layout.doctor_dashboard);
 
         startime = findViewById(R.id.startTime);
         AllAppointments = findViewById(R.id.AllAppointments);

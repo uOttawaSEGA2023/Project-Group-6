@@ -9,8 +9,9 @@ import android.content.Intent;
 import android.view.View;
 
 import com.example.seg2105_project.UI.AdminDashboard;
+import com.example.seg2105_project.UI.DoctorDashboard;
 import com.example.seg2105_project.UI.SignUpPage;
-import com.example.seg2105_project.UI.UserDashboard;
+import com.example.seg2105_project.UI.PatientDashboard;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.Map;
@@ -18,8 +19,7 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     private View view;
-    private Intent adminDashboard;
-    private Intent userDashboard;
+    private Intent adminDashboard, doctorDashboard, patientDashboard;
 
     private Intent signUpIntent;
     private Button signUpBtn;
@@ -42,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
         password = findViewById(R.id.password_input);
 
         adminDashboard = new Intent(this, AdminDashboard.class);
-        userDashboard = new Intent(this, UserDashboard.class);
+        doctorDashboard = new Intent(this, DoctorDashboard.class);
+
+        patientDashboard = new Intent(this, PatientDashboard.class);
 
         signUpIntent = new Intent(this, SignUpPage.class);
 
@@ -51,9 +53,35 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loginBtn.setOnClickListener(view -> {
+            if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
+            if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
 
+            Map<String, String> userType = db.userExists(email.getText().toString().toLowerCase(), password.getText().toString());
 
-            startActivity(userDashboard);
+            if (!userType.isEmpty()) { // user exists
+                if(userType.get("user_type").equalsIgnoreCase("admin")){
+                    adminDashboard.putExtra("userType", userType.get("user_type"));
+                    startActivity(adminDashboard);
+                    return;
+                }
+
+                if(userType.get("user_type").equalsIgnoreCase("doctor")){
+                    doctorDashboard.putExtra("userType", userType.get("user_type"));
+                    doctorDashboard.putExtra("approved", userType.get("approved"));
+
+                    startActivity(doctorDashboard);
+                    return;
+                }
+
+                patientDashboard.putExtra("userType", userType.get("user_type"));
+                patientDashboard.putExtra("approved", userType.get("approved"));
+                patientDashboard.putExtra("rejected", userType.get("rejected"));
+
+                startActivity(patientDashboard);
+
+            } else { // user does not exist -> invalid credentials
+                Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT).show();
+            }
         });
     }
     public boolean validEmail(String email) {

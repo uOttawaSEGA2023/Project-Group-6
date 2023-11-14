@@ -1,12 +1,11 @@
 package com.example.seg2105_project.UI;
 
-import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.DatePicker;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
@@ -18,69 +17,30 @@ import com.example.seg2105_project.UserType;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Calendar;
-import java.util.Locale;
 
 
 public class DoctorDashboard extends AppCompatActivity {
     private UserType userType;
     private DBManager db;
-    private TextView userTypeText;
-    private Button logoutBtn;
-    private FloatingActionButton AddAppointments;
-
-    private FloatingActionButton AllAppointments;
     private TextView statusText;
-
-    private TextView startime;
-
-    private TextView Date;
-    private Button openCalendar;
-
-    private TextView user_type_text;
-
-    private Button logout_button;
-
-    private TimePicker timePicker;
-
-    private TextView startTime2;
-
-    private TimePicker  timePicker2;
-
-    private FloatingActionButton confirmA;
-
-
-
+    TextView userTypeText;
+    Button logoutBtn;
+    LinearLayout mainView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.doctor_dashboard);
 
-        startime = findViewById(R.id.startTime);
-        AllAppointments = findViewById(R.id.AllAppointments);
+        mainView = (LinearLayout) findViewById(R.id.mainView);
+
         userTypeText = findViewById(R.id.user_type_text);
+
+        //nav bar items
+        FloatingActionButton shifts = findViewById(R.id.shifts);
+        FloatingActionButton home = findViewById(R.id.doctorHome);
+        FloatingActionButton settings = findViewById(R.id.setting);
+
         logoutBtn = findViewById(R.id.logout_button);
-        timePicker = findViewById(R.id.timePicker);
-        startTime2 = findViewById(R.id.startTime2);
-        confirmA = findViewById(R.id.confirmA);
-        timePicker2 = findViewById(R.id.timePicker2);
-        openCalendar = findViewById(R.id.openCalendar);
-        statusText = findViewById(R.id.statusText);
-        AddAppointments = findViewById(R.id.AddAppointments);
-        user_type_text = findViewById(R.id.user_type_text);
-        logout_button = findViewById(R.id.logout_button);
-        Date = findViewById(R.id.Date);
-
-
-        //Appointments
-        startime.setVisibility(View.GONE);
-        openCalendar.setVisibility(View.GONE);
-        statusText.setVisibility(View.GONE);
-        timePicker.setVisibility(View.GONE);
-        startTime2.setVisibility(View.GONE);
-        timePicker2.setVisibility(View.GONE);
-        confirmA.setVisibility(View.GONE);
-        ///
-
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {
@@ -94,150 +54,75 @@ public class DoctorDashboard extends AppCompatActivity {
                 else {
                     userTypeText.setText(("Your account hasn't been approved yet"));
                 }
+
+                return;
             }
-
-
         }
 
-        AddAppointments.setOnClickListener(view -> {
-            user_type_text.setVisibility(View.GONE);
-            logout_button.setVisibility(View.GONE);
+        shifts.setOnClickListener(view -> {
+            showSettings(false);
+            showShifts();
+        });
 
-
-            startime.setVisibility(View.VISIBLE);
-            openCalendar.setVisibility(View.VISIBLE);
-            statusText.setVisibility(View.VISIBLE);
-            timePicker.setVisibility(View.VISIBLE);
-            startTime2.setVisibility(View.VISIBLE);
-            timePicker2.setVisibility(View.VISIBLE);
-            confirmA.setVisibility(View.VISIBLE);
-
-
-
+        home.setOnClickListener(view -> {
+            showSettings(false);
 
         });
 
-        AllAppointments.setOnClickListener(view -> {
-            user_type_text.setVisibility(View.VISIBLE);
-            logout_button.setVisibility(View.VISIBLE);
-
-
-            ///Appointments
-            startime.setVisibility(View.GONE);
-            openCalendar.setVisibility(View.GONE);
-            statusText.setVisibility(View.GONE);
-            timePicker.setVisibility(View.GONE);
-            startTime2.setVisibility(View.GONE);
-            timePicker2.setVisibility(View.GONE);
-            confirmA.setVisibility(View.GONE);
-
+        settings.setOnClickListener(view -> {
+            showSettings(true);
         });
-
-        openCalendar.setOnClickListener(view -> {
-            openDate();
-
-
-        });
-
-        confirmA.setOnClickListener(view -> {
-            startTime();
-            EndTime();
-
-
-        });
-
-
-
 
         logoutBtn.setOnClickListener(view -> {
             finish();
         });
 
+
     }
 
+    void showSettings(boolean visibility){
+        if(visibility) {
+            mainView.removeAllViews();
+            userTypeText.setVisibility(View.VISIBLE);
+            logoutBtn.setVisibility(View.VISIBLE);
+        }
+        else{
+            userTypeText.setVisibility(View.GONE);
+            logoutBtn.setVisibility(View.GONE);
+        }
+    }
 
+    void showShifts(){
+        mainView.removeAllViews();
 
-    public void openDate() {
+        TimePicker timePicker = new TimePicker(this);
+        timePicker.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        mainView.addView(timePicker);
 
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
+        Button button = new Button(this);
+        button.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        button.setText("Select shift time");
+        mainView.addView(button);
 
-
-        DatePickerDialog datePickerDialog = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+        button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDateSet(DatePicker datePicker, int selectedYear, int selectedMonth, int selectedDay) {
+            public void onClick(View v) {
+                final Calendar c = Calendar.getInstance();
+                int hour = c.get(Calendar.HOUR_OF_DAY);
+                int minute = c.get(Calendar.MINUTE);
 
-                //Data retrieval for the day
-                statusText.setText(String.valueOf(datePicker));
+                TimePickerDialog timePickerDialog = new TimePickerDialog(DoctorDashboard.this,
+                        new TimePickerDialog.OnTimeSetListener() {
+                            @Override
+                            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                                // Do something with the selected time
+                            }
+                        }, hour, minute, false);
+                timePickerDialog.show();
             }
-        }, year, month, day);
+        });
 
-
-        datePickerDialog.show();
     }
-
-    public void startTime() {
-
-        //First timer
-        TimePicker timePicker = findViewById(R.id.timePicker2);
-        TextView selectedTimeTextView = findViewById(R.id.Date);
-
-        int selectedHour;
-        int selectedMinute;
-
-
-        if (Build.VERSION.SDK_INT >= 23) {
-            selectedHour = timePicker.getHour();
-            selectedMinute = timePicker.getMinute();
-        } else {
-            selectedHour = timePicker.getCurrentHour();
-            selectedMinute = timePicker.getCurrentMinute();
-        }
-
-
-        String selectedTime = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
-
-        //Date for start time
-        selectedTimeTextView.setText("Selected Time: " + selectedTime);
-    }
-
-
-    public void EndTime () {
-
-        //First timer
-        TimePicker timePicker = findViewById(R.id.timePicker2);
-        TextView selectedTimeTextView = findViewById(R.id.Date);
-
-        int selectedHour;
-        int selectedMinute;
-
-
-        if (Build.VERSION.SDK_INT >= 23) {
-            selectedHour = timePicker.getHour();
-            selectedMinute = timePicker.getMinute();
-        } else {
-            selectedHour = timePicker.getCurrentHour();
-            selectedMinute = timePicker.getCurrentMinute();
-        }
-
-
-        String selectedTime = String.format(Locale.getDefault(), "%02d:%02d", selectedHour, selectedMinute);
-
-             //Date for end time
-        selectedTimeTextView.setText("Selected Time: " + selectedTime);
-    }
-
-
-
-
-
-
-
-
-
-
-
+    void showAppointmentss(boolean visibility){}
 
 }

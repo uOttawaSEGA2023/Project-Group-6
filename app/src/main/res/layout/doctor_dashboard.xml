@@ -33,7 +33,7 @@
         app:srcCompat="@drawable/people" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/AllAppointments"
+        android:id="@+id/doctorHome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="true"
@@ -49,7 +49,7 @@
         tools:ignore="SpeakableTextPresentCheck" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/AddAppointments"
+        android:id="@+id/shifts"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="true"
@@ -100,31 +100,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.471" />
 
-    <TimePicker
-        android:id="@+id/timePicker"
-        android:layout_width="242dp"
-        android:layout_height="114dp"
-        android:layout_marginTop="5dp"
-        android:timePickerMode="spinner"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.23"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/startTime"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TimePicker
-        android:id="@+id/timePicker2"
-        android:layout_width="322dp"
-        android:layout_height="152dp"
-        android:layout_marginTop="33dp"
-        android:timePickerMode="spinner"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.438"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/startTime2"
-        app:layout_constraintVertical_bias="0.0" />
 
     <ScrollView
         android:id="@+id/scrollView"
@@ -171,87 +146,15 @@
         </LinearLayout>
     </ScrollView>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/confirmA"
-        android:layout_width="57dp"
-        android:layout_height="63dp"
-        android:clickable="true"
+    <LinearLayout
+        android:id="@+id/mainView"
+        android:layout_width="401dp"
+        android:layout_height="680dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.466"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timePicker2"
-        app:layout_constraintVertical_bias="0.083"
-        app:srcCompat="@drawable/checkmark"
-        tools:visibility="visible" />
-
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="272dp"
-        android:layout_height="39dp"
-        android:fontFamily="sans-serif-medium"
-        android:text="Status"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.316"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/UpcomingAppointments"
-        app:layout_constraintVertical_bias="0.001" />
-
-    <Button
-        android:id="@+id/openCalendar"
-        android:layout_width="208dp"
-        android:layout_height="44dp"
-        android:layout_marginTop="39dp"
-        android:text="Calendar
-"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.359"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/statusText"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
-        android:id="@+id/startTime"
-        android:layout_width="126dp"
-        android:layout_height="32dp"
-        android:layout_marginTop="122dp"
-        android:text="Start:"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.136"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.043" />
-
-    <TextView
-        android:id="@+id/startTime2"
-        android:layout_width="126dp"
-        android:layout_height="33dp"
-        android:layout_marginTop="114dp"
-        android:text="End:"
-        android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.136"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/timePicker"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
-        android:id="@+id/Date"
-        android:layout_width="84dp"
-        android:layout_height="36dp"
-        android:text="Date"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.094"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.732" />
-
+        app:layout_constraintVertical_bias="0.782"></LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

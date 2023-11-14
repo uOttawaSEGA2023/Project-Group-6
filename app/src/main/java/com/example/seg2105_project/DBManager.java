@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
 import android.content.Context;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
@@ -234,5 +235,34 @@ public class DBManager {
         }
         cursor.close();
         return user;
+    }
+
+    /************ Deliverable 3 **************/
+    ArrayList<HashMap<String, Object>> getRejectedAppointments(){
+        return null;
+    }
+    ArrayList<HashMap<String, Object>> getApprovedAppointments(){
+        return null;
+    }
+    ArrayList<HashMap<String, Object>> getPendingAppointments(){
+        return null;
+    }
+
+    void cancelAppointment(int appointmentID){
+
+    }
+    void approveAppointment(int appointmentID){
+
+    }
+
+    ArrayList<HashMap<String, Object>> getShifts(int doctorID){
+        return null;
+    }
+
+    void createShift(int doctorID, LocalDateTime start, LocalDateTime end){
+
+    }
+    void deleteShift(int id){
+
     }
 }

@@ -3,9 +3,11 @@ package com.example.seg2105_project.UI;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -104,10 +106,16 @@ public class DoctorDashboard extends AppCompatActivity {
         rejectedAppointmentsBtn.setText("Rejected");
 
         appointmentView = new LinearLayout(this);
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        appointmentView.setOrientation(LinearLayout.VERTICAL);
+
         mainView.addView(approvedAppointmentsBtn);
         mainView.addView(pendingAppointmentsBtn);
         mainView.addView(rejectedAppointmentsBtn);
-        mainView.addView(appointmentView);
+        mainView.addView(appointmentView, layoutParams);
 
         //get appointments from db
         ArrayList<HashMap<String, Object>> approvedAppointments = db.getApprovedAppointments();
@@ -157,6 +165,15 @@ public class DoctorDashboard extends AppCompatActivity {
         for(int i=0; i<appointments.size(); i++){
             FrameLayout container = new FrameLayout(this);
 
+            ImageView rectangle = new ImageView(this);
+            rectangle.setImageResource(R.drawable.curve);
+
+            FrameLayout.LayoutParams imageLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            container.addView(rectangle, imageLayoutParams);
             TextView appointmentInfo = new TextView(this);
 
             HashMap<String, Object> appointment = appointments.get(i);
@@ -170,7 +187,7 @@ public class DoctorDashboard extends AppCompatActivity {
             //add userInfo
             Object patient_id = appointment.get("patient_id");
 
-            if(patient_id !=null){
+            if(patient_id != null){
                 //get patientInfo
                 HashMap<String, Object> patient = db.getUser((int)patient_id);
 
@@ -189,20 +206,27 @@ public class DoctorDashboard extends AppCompatActivity {
 
             }
 
-            container.addView(appointmentInfo);
+            FrameLayout.LayoutParams infoLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            infoLayoutParams.gravity = Gravity.CENTER;
+            container.addView(appointmentInfo, infoLayoutParams);
 
             Button acceptBtn = new Button(this);
             acceptBtn.setText("Accept");
+
             Button cancelBtn = new Button(this);
             cancelBtn.setText("Cancel");
 
             acceptBtn.setOnClickListener(view -> {
-                db.approveAppointment((int)appointment.get("id"));
+                db.approveAppointment(Integer.parseInt(appointment.get("id").toString()));
                 appointmentView.removeView(container);
             });
 
             cancelBtn.setOnClickListener(view -> {
-                db.cancelAppointment((int)appointment.get("id"));
+                db.cancelAppointment(Integer.parseInt(appointment.get("id").toString()));
                 appointmentView.removeView(container);
             });
 
@@ -214,8 +238,21 @@ public class DoctorDashboard extends AppCompatActivity {
                 }
             });
 
-            if(showAcceptBtn) container.addView(acceptBtn);
-            if(showCancelBtn) container.addView(cancelBtn);
+            FrameLayout.LayoutParams acceptLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            acceptLayoutParams.gravity = Gravity.TOP | Gravity.START;
+
+            if(showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
+
+            FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
+            if(showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
 
             appointmentView.addView(container);
         }

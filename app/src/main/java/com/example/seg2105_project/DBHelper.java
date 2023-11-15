@@ -45,8 +45,28 @@ public class DBHelper extends SQLiteOpenHelper {
                     "rejected BOOL NOT NULL DEFAULT 0" + // if rejected == false -> the request has not been reviewed. if rejected == true -> the request was rejected. if the row is gone -> the request was accepted
                 ")";
 
+        // CREATING patient_appointments TABLE
+        String patientAppointmentsTableCreationQuery = "CREATE TABLE IF NOT EXISTS patient_appointments (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "patient_id INTEGER NOT NULL," +
+                    "doctor_id INTEGER NOT NULL," +
+                    "start_time INTEGER NOT NULL," + // UNIX timestamps
+                    "end_time INTEGER NOT NULL," + // UNIX timestamps
+                    "rejected BOOL DEFAULT NULL" + // if rejected == null --> it has not been reviewed yet
+                ");";
+
+        // CREATING shifts TABLE
+        String shiftsTableCreationQuery = "CREATE TABLE IF NOT EXISTS shifts (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "start_time INTEGER NOT NULL," + // UNIX timestamps
+                    "end_time INTEGER NOT NULL," + // UNIX timestamps
+                    "doctor_id INTEGER NOT NULL" +
+                ");";
+
         sqLiteDatabase.execSQL(usersTableCreationQuery);
         sqLiteDatabase.execSQL(registrationRequestsTableCreationQuery);
+        sqLiteDatabase.execSQL(patientAppointmentsTableCreationQuery);
+        sqLiteDatabase.execSQL(shiftsTableCreationQuery);
 
         // inserting default administrator credentials into the DB
         String[] valuesToInsert = new String[]{"Admin", "Admin", "admin@admin.com", "Hello123", "1234567890", "123 Admin Dr.", UserType.ADMINISTRATOR.type};

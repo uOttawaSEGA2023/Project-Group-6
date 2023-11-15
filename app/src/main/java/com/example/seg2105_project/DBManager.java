@@ -6,10 +6,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
 import android.content.Context;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.time.Instant;
 
 public class DBManager {
     private static DBHelper dbHelper;
@@ -237,39 +242,125 @@ public class DBManager {
         return user;
     }
 
-    /************ Deliverable 3 **************/
+    @SuppressLint("Range")
     public ArrayList<HashMap<String, Object>> getRejectedAppointments(){
-        return null;
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = 1;", null);
+        ArrayList<HashMap<String, Object>> rejectedAppointments = new ArrayList<>();
+        HashMap<String, Object> currentAppointment;
+        while(rows.moveToNext()){
+            currentAppointment = new HashMap<>();
+            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+            currentAppointment.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
+            currentAppointment.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            rejectedAppointments.add(currentAppointment);
+        }
+        rows.close();
+        return rejectedAppointments;
     }
+
+    @SuppressLint("Range")
     public ArrayList<HashMap<String, Object>> getApprovedAppointments(){
-        return null;
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = 0;", null);
+        ArrayList<HashMap<String, Object>> approvedAppointments = new ArrayList<>();
+        HashMap<String, Object> currentAppointment;
+        while(rows.moveToNext()){
+            currentAppointment = new HashMap<>();
+            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+            currentAppointment.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
+            currentAppointment.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            approvedAppointments.add(currentAppointment);
+        }
+        rows.close();
+        return approvedAppointments;
     }
+
+    @SuppressLint("Range")
     public ArrayList<HashMap<String, Object>> getPendingAppointments(){
-        return null;
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = NULL;", null);
+        ArrayList<HashMap<String, Object>> pendingAppointments = new ArrayList<>();
+        HashMap<String, Object> currentAppointment;
+        while(rows.moveToNext()){
+            currentAppointment = new HashMap<>();
+            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+            currentAppointment.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
+            currentAppointment.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            pendingAppointments.add(currentAppointment);
+        }
+        rows.close();
+        return pendingAppointments;
     }
 
     public void cancelAppointment(int appointmentID){
-
+        db.execSQL("UPDATE patient_appointments SET rejected = 1 WHERE id = ?;", new Object[]{appointmentID});
     }
     public void approveAppointment(int appointmentID){
-
+        db.execSQL("UPDATE patient_appointments SET rejected = 0 WHERE id = ?;", new Object[]{appointmentID});
     }
 
+    @SuppressLint("Range")
     public ArrayList<HashMap<String, Object>> getShifts(int doctorID){
-        return null;
+        Cursor rows = db.rawQuery("SELECT * FROM shifts WHERE doctor_id = ?;", new String[]{Integer.toString(doctorID)});
+        ArrayList<HashMap<String, Object>> shifts = new ArrayList<>();
+        HashMap<String, Object> currentShift;
+        while(rows.moveToNext()){
+            currentShift = new HashMap<>();
+            currentShift.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
+            currentShift.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            shifts.add(currentShift);
+        }
+        rows.close();
+        return shifts;
     }
 
-    public void createShift(int doctorID, LocalDateTime start, LocalDateTime end){
+    @SuppressLint("Range")
+    public boolean createShift(int doctorID, String start, String end) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        long startUnixTime = dateFormat.parse(start).getTime();
+        long endUnixTime = dateFormat.parse(end).getTime();
+        long currentAppointmentStart, currentAppointmentEnd;
+        boolean overlaping = false;
 
+        Cursor rows = db.rawQuery("SELECT start_time, end_time FROM patient_appointments WHERE rejected = 0;", null);
+        while(rows.moveToNext()){
+            currentAppointmentStart = rows.getInt(rows.getColumnIndex("start_time"));
+            currentAppointmentEnd =  rows.getInt(rows.getColumnIndex("end_time"));
+            if ((endUnixTime >= currentAppointmentStart && endUnixTime <= currentAppointmentEnd) || (startUnixTime >= currentAppointmentStart && startUnixTime <= currentAppointmentEnd)) {
+                overlaping = true;
+                break;
+            }
+        }
+        rows.close();
+
+        if (!overlaping) {
+            db.execSQL("INSERT INTO shifts (doctor_id, start_time, end_time) VALUES (?,?,?,?)", new Object[]{doctorID, startUnixTime, endUnixTime});
+        }
+
+        return overlaping;
     }
     public void deleteShift(int id){
-
+        db.execSQL("DELETE FROM shifts WHERE id = ?;", new Object[]{id});
     }
 
     /**
-     * return info about user
+     * return info about a user
      * */
+    @SuppressLint("Range")
     public HashMap<String, Object> getUser(int id){
-        return null;
+        Cursor rows = db.rawQuery("SELECT * FROM users WHERE id = ?;", new String[]{Integer.toString(id)});
+        rows.moveToNext();
+        HashMap<String, Object> userInfo = new HashMap<>();
+        userInfo.put("firstname", rows.getString(rows.getColumnIndex("firstname")));
+        userInfo.put("lastname", rows.getString(rows.getColumnIndex("lastname")));
+        userInfo.put("email", rows.getString(rows.getColumnIndex("email")));
+        userInfo.put("telephone", rows.getString(rows.getColumnIndex("telephone")));
+        userInfo.put("address", rows.getString(rows.getColumnIndex("address")));
+        userInfo.put("health_card_number", rows.getString(rows.getColumnIndex("health_card_number")));
+        userInfo.put("employee_number", rows.getInt(rows.getColumnIndex("employee_number")));
+        userInfo.put("specialties", rows.getString(rows.getColumnIndex("specialties")));
+        userInfo.put("user_type", UserType.fromString(rows.getString(rows.getColumnIndex("user_type"))));
+        return userInfo;
     }
 }

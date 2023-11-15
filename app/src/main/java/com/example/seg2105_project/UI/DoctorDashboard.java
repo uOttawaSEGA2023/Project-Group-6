@@ -3,11 +3,9 @@ package com.example.seg2105_project.UI;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -19,17 +17,22 @@ import com.example.seg2105_project.R;
 import com.example.seg2105_project.UserType;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import org.w3c.dom.Text;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-
+import java.util.Map;
+import java.util.Locale;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 
 import android.widget.DatePicker;
 import androidx.fragment.app.DialogFragment;
+import java.util.Date;
+
 public class DoctorDashboard extends AppCompatActivity {
     private UserType userType;
     private DBManager db;
@@ -38,6 +41,10 @@ public class DoctorDashboard extends AppCompatActivity {
     Button logoutBtn;
     LinearLayout mainView;
     LinearLayout appointmentView;
+    int your_textview_id;
+    String selectedDate;
+    String selectedTime;
+    String selectedEndTime;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,18 +113,13 @@ public class DoctorDashboard extends AppCompatActivity {
         rejectedAppointmentsBtn.setText("Rejected");
 
         appointmentView = new LinearLayout(this);
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT
-        );
-        appointmentView.setOrientation(LinearLayout.VERTICAL);
-
         mainView.addView(approvedAppointmentsBtn);
         mainView.addView(pendingAppointmentsBtn);
         mainView.addView(rejectedAppointmentsBtn);
-        mainView.addView(appointmentView, layoutParams);
+        mainView.addView(appointmentView);
 
         //get appointments from db
+
         ArrayList<HashMap<String, Object>> approvedAppointments = db.getApprovedAppointments();
         ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
         ArrayList<HashMap<String, Object>> rejectedAppointments = db.getRejectedAppointments();
@@ -165,15 +167,6 @@ public class DoctorDashboard extends AppCompatActivity {
         for(int i=0; i<appointments.size(); i++){
             FrameLayout container = new FrameLayout(this);
 
-            ImageView rectangle = new ImageView(this);
-            rectangle.setImageResource(R.drawable.curve);
-
-            FrameLayout.LayoutParams imageLayoutParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-
-            container.addView(rectangle, imageLayoutParams);
             TextView appointmentInfo = new TextView(this);
 
             HashMap<String, Object> appointment = appointments.get(i);
@@ -187,7 +180,7 @@ public class DoctorDashboard extends AppCompatActivity {
             //add userInfo
             Object patient_id = appointment.get("patient_id");
 
-            if(patient_id != null){
+            if(patient_id !=null){
                 //get patientInfo
                 HashMap<String, Object> patient = db.getUser((int)patient_id);
 
@@ -206,27 +199,20 @@ public class DoctorDashboard extends AppCompatActivity {
 
             }
 
-            FrameLayout.LayoutParams infoLayoutParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-
-            infoLayoutParams.gravity = Gravity.CENTER;
-            container.addView(appointmentInfo, infoLayoutParams);
+            container.addView(appointmentInfo);
 
             Button acceptBtn = new Button(this);
             acceptBtn.setText("Accept");
-
             Button cancelBtn = new Button(this);
             cancelBtn.setText("Cancel");
 
             acceptBtn.setOnClickListener(view -> {
-                db.approveAppointment(Integer.parseInt(appointment.get("id").toString()));
+                db.approveAppointment((int)appointment.get("id"));
                 appointmentView.removeView(container);
             });
 
             cancelBtn.setOnClickListener(view -> {
-                db.cancelAppointment(Integer.parseInt(appointment.get("id").toString()));
+                db.cancelAppointment((int)appointment.get("id"));
                 appointmentView.removeView(container);
             });
 
@@ -238,21 +224,8 @@ public class DoctorDashboard extends AppCompatActivity {
                 }
             });
 
-            FrameLayout.LayoutParams acceptLayoutParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-            acceptLayoutParams.gravity = Gravity.TOP | Gravity.START;
-
-            if(showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
-
-            FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-            );
-
-            cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
-            if(showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
+            if(showAcceptBtn) container.addView(acceptBtn);
+            if(showCancelBtn) container.addView(cancelBtn);
 
             appointmentView.addView(container);
         }
@@ -269,7 +242,7 @@ public class DoctorDashboard extends AppCompatActivity {
         }
     }
 
-    void showShifts(){
+    void showShifts() {
         mainView.removeAllViews();
 
 
@@ -307,21 +280,139 @@ public class DoctorDashboard extends AppCompatActivity {
         showShift.setText("Show Shifts");
         mainView.addView(addShift);
 
-        endTimer.setOnClickListener(v -> showEndTimePickerDialog());
+
+        showShift.setOnClickListener(v -> {
+            try {
+                addShift();
+            } catch (ParseException e) {
+                e.printStackTrace(); // Handle the ParseException appropriately
+            }
+        });
+
+        int statusTextViewId = 123;
+
+        your_textview_id = View.generateViewId();
+
+        TextView statusTextView = new TextView(this);
+        statusTextView.setId(your_textview_id);
+        statusTextView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        statusTextView.setText("Status");
+        mainView.addView(statusTextView);
+
+
 
 
     }
-    private void addShift(){
-        ///add shift to database
+
+
+
+    private void showAllShifts(){
+        ArrayList<Map<String, Object>>  userRequests = db.getRegistrationRequests();
+        int request_id = (int) userRequests.get(0).get("id");
+
+        ArrayList<HashMap<String, Object>> approvedShifts = db.getShifts(request_id);
+
+        for(int i=0; i<approvedShifts.size(); i++){
+            FrameLayout container = new FrameLayout(this);
+
+            TextView appointmentInfo = new TextView(this);
+
+
+
+            //append appoint info
+            for(String col:approvedShifts.keySet()){
+                if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("doctor_id")) continue;
+                appointmentInfo.append(col+": "+ approvedShifts.get(col) +" ");
+            }
+
+            //add userInfo
+            Object patient_id = approvedShifts.get("patient_id");
+
+            if(patient_id !=null){
+                //get patientInfo
+                HashMap<String, Object> patient = db.getUser((int)patient_id);
+
+                if(patient.size() !=0){
+                    //append patient info to textView
+                    for(String col:patient.keySet()){
+                        appointmentInfo.append("\n");
+                        if (col.equalsIgnoreCase("id")
+                                || col.equalsIgnoreCase("employee_number")
+                                || col.equalsIgnoreCase("user_type")
+                                || col.equalsIgnoreCase("specialties")) continue;
+
+                        appointmentInfo.append(col+": "+ patient.get(col) +"\n");
+                    }
+                }
+
+            }
+
+            container.addView(appointmentInfo);
+
+
+            Button cancelBtn = new Button(this);
+            cancelBtn.setText("Cancel");
+
+            acceptBtn.setOnClickListener(view -> {
+                db.approveAppointment((int)approvedShifts.get("id"));
+                appointmentView.removeView(container);
+            });
+
+            cancelBtn.setOnClickListener(view -> {
+                db.cancelAppointment((int)approvedShifts.get("id"));
+                appointmentView.removeView(container);
+            });
+
+            appointmentInfo.setOnClickListener(v ->{
+                if(appointmentInfo.getMaxLines()==1){
+                    appointmentInfo.setMaxLines(10);
+                }else{
+                    appointmentInfo.setMaxLines(1);
+                }
+            });
+
+            if(showAcceptBtn) container.addView(acceptBtn);
+            if(showCancelBtn) container.addView(cancelBtn);
+
+            appointmentView.addView(container);
+        }
+
+
+
+    }
+    private void addShift () throws ParseException {
+        db = new DBManager(this).open();
+        ArrayList<Map<String, Object>> userRequests = db.getRegistrationRequests();
+
+        if (!userRequests.isEmpty()) {
+            int request_id = (int) userRequests.get(0).get("id");
+
+            String startTotal = selectedDate + " " + selectedTime;
+            String endTotal = selectedDate + " " + selectedEndTime;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+            try {
+                Date startDate = dateFormat.parse(startTotal);
+                Date endDate = dateFormat.parse(endTotal);
+
+
+                String startDate1 = dateFormat.format(startDate);
+                String endDate1 = dateFormat.format(endDate);
+
+                boolean check =  db.createShift(request_id, startDate1, endDate1);
+                if(check != false){
+                    //Error conflict
+                    TextView foundTextView = findViewById(your_textview_id );
+                    foundTextView.setText("error conflict");
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
-    private void showShift(){
-        ///show  shift to database
-        displayShifts(null, false,false);
-    }
 
-    private void displayShifts(ArrayList<HashMap<String, Object>> shifts, boolean showAcceptBtn, boolean showCancelBtn){
+    private void displayShifts(ArrayList<HashMap<String, Object>> shifts){
         for(int i=0; i<shifts.size(); i++){
             FrameLayout container = new FrameLayout(this);
 
@@ -398,7 +489,8 @@ public class DoctorDashboard extends AppCompatActivity {
                     @Override
                     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 
-                        String selectedDate = String.format("%02d-%02d-%02d", year, monthOfYear + 1, dayOfMonth);
+                        selectedDate = String.format("%02d-%02d-%02d", year, monthOfYear + 1, dayOfMonth);
+                        //2023-05-07
                     }
                 },
                 currentYear,
@@ -423,8 +515,8 @@ public class DoctorDashboard extends AppCompatActivity {
                     // Round down to the nearest whole hour or half-hour
                     int roundedMinute = (minute < 30) ? 0 : 30;
 
-                    String selectedTime = String.format("%02d:%02d", hourOfDay, roundedMinute);
-
+                    selectedTime = String.format("%02d:%02d", hourOfDay, roundedMinute);
+                    //09:03
                     // Now 'selectedTime' represents the rounded time
                     // You can use it as needed
                 },
@@ -443,7 +535,7 @@ public class DoctorDashboard extends AppCompatActivity {
         TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                 (view, hourOfDay, minute) -> {
                     int roundedMinute = (minute < 30) ? 0 : 30;
-                    String selectedTime = String.format("%02d:%02d", hourOfDay, roundedMinute);
+                    selectedEndTime = String.format("%02d:%02d", hourOfDay, roundedMinute);
 
                 },
                 currentHour, currentMinute, false);

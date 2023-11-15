@@ -238,31 +238,38 @@ public class DBManager {
     }
 
     /************ Deliverable 3 **************/
-    ArrayList<HashMap<String, Object>> getRejectedAppointments(){
+    public ArrayList<HashMap<String, Object>> getRejectedAppointments(){
         return null;
     }
-    ArrayList<HashMap<String, Object>> getApprovedAppointments(){
+    public ArrayList<HashMap<String, Object>> getApprovedAppointments(){
         return null;
     }
-    ArrayList<HashMap<String, Object>> getPendingAppointments(){
-        return null;
-    }
-
-    void cancelAppointment(int appointmentID){
-
-    }
-    void approveAppointment(int appointmentID){
-
-    }
-
-    ArrayList<HashMap<String, Object>> getShifts(int doctorID){
+    public ArrayList<HashMap<String, Object>> getPendingAppointments(){
         return null;
     }
 
-    void createShift(int doctorID, LocalDateTime start, LocalDateTime end){
+    public void cancelAppointment(int appointmentID){
 
     }
-    void deleteShift(int id){
+    public void approveAppointment(int appointmentID){
 
+    }
+
+    public ArrayList<HashMap<String, Object>> getShifts(int doctorID){
+        return null;
+    }
+
+    public void createShift(int doctorID, LocalDateTime start, LocalDateTime end){
+
+    }
+    public void deleteShift(int id){
+
+    }
+
+    /**
+     * return info about user
+     * */
+    public HashMap<String, Object> getUser(int id){
+        return null;
     }
 }

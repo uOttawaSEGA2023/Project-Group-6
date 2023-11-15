@@ -316,7 +316,7 @@ public class DBManager {
     }
 
     @SuppressLint("Range")
-    public boolean createShift(int doctorID, int patientID, String start, String end) throws ParseException {
+    public boolean createShift(int doctorID, String start, String end) throws ParseException {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         long startUnixTime = dateFormat.parse(start).getTime();
         long endUnixTime = dateFormat.parse(end).getTime();
@@ -335,7 +335,7 @@ public class DBManager {
         rows.close();
 
         if (!overlaping) {
-            db.execSQL("INSERT INTO patient_appointments (patient_id, doctor_id, start_time, end_time) VALUES (?,?,?,?)", new Object[]{patientID, doctorID, startUnixTime, endUnixTime});
+            db.execSQL("INSERT INTO shifts (doctor_id, start_time, end_time) VALUES (?,?,?,?)", new Object[]{doctorID, startUnixTime, endUnixTime});
         }
 
         return overlaping;

@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loginBtn.setOnClickListener(view -> {
+
             if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
             if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
 
@@ -65,23 +66,16 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
-                if(userType.get("user_type").equalsIgnoreCase("doctor")){
-                    doctorDashboard.putExtra("userType", userType.get("user_type"));
-                    doctorDashboard.putExtra("approved", userType.get("approved"));
+                doctorDashboard.putExtra("userType", userType.get("user_type"));
+                doctorDashboard.putExtra("approved", userType.get("approved"));
+                doctorDashboard.putExtra("rejected", userType.get("rejected"));
 
-                    startActivity(doctorDashboard);
-                    return;
-                }
-
-                patientDashboard.putExtra("userType", userType.get("user_type"));
-                patientDashboard.putExtra("approved", userType.get("approved"));
-                patientDashboard.putExtra("rejected", userType.get("rejected"));
-
-                startActivity(patientDashboard);
+                startActivity(doctorDashboard);
 
             } else { // user does not exist -> invalid credentials
                 Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT).show();
             }
+
         });
     }
     public boolean validEmail(String email) {

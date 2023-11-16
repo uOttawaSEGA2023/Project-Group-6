@@ -5,6 +5,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.Cursor;
 import android.content.Context;
+import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -207,7 +208,7 @@ public class DBManager {
     }
 
     public Map<String, String> userExists(String email, String password) throws IllegalArgumentException {
-        String[] columnsToRetrieve = new String[]{"user_type"};
+        String[] columnsToRetrieve = new String[]{"user_type", "id"};
         String[] valuesToSearch = new String[]{email, password}; // values to search for in the DB
         boolean userExists;
         Cursor cursor;
@@ -220,6 +221,9 @@ public class DBManager {
             int columnIndex = cursor.getColumnIndex("user_type");
             user.put("user_type", cursor.getString(columnIndex));
             user.put("approved", "true");
+
+            int idIndex = cursor.getColumnIndex("id");
+            user.put("id", cursor.getString(idIndex));
         } else {
 
             /********* Look in registration_requests' table **************/
@@ -248,11 +252,20 @@ public class DBManager {
         ArrayList<HashMap<String, Object>> rejectedAppointments = new ArrayList<>();
         HashMap<String, Object> currentAppointment;
         while(rows.moveToNext()){
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("start_time")));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
+            }
+
             currentAppointment = new HashMap<>();
+            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
             currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
             currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
-            currentAppointment.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
-            currentAppointment.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            currentAppointment.put("start_time", start_time);
+            currentAppointment.put("end_time", end_time);
             rejectedAppointments.add(currentAppointment);
         }
         rows.close();
@@ -265,11 +278,19 @@ public class DBManager {
         ArrayList<HashMap<String, Object>> approvedAppointments = new ArrayList<>();
         HashMap<String, Object> currentAppointment;
         while(rows.moveToNext()){
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("start_time")));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
+            }
             currentAppointment = new HashMap<>();
+            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
             currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
             currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
-            currentAppointment.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
-            currentAppointment.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            currentAppointment.put("start_time", start_time);
+            currentAppointment.put("end_time", end_time);
             approvedAppointments.add(currentAppointment);
         }
         rows.close();
@@ -278,15 +299,24 @@ public class DBManager {
 
     @SuppressLint("Range")
     public ArrayList<HashMap<String, Object>> getPendingAppointments(){
-        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = NULL;", null);
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = -1;", null);
         ArrayList<HashMap<String, Object>> pendingAppointments = new ArrayList<>();
         HashMap<String, Object> currentAppointment;
         while(rows.moveToNext()){
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("start_time")));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
+            }
+
             currentAppointment = new HashMap<>();
+            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
             currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
             currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
-            currentAppointment.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
-            currentAppointment.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            currentAppointment.put("start_time", start_time);
+            currentAppointment.put("end_time", end_time);
             pendingAppointments.add(currentAppointment);
         }
         rows.close();
@@ -305,10 +335,20 @@ public class DBManager {
         Cursor rows = db.rawQuery("SELECT * FROM shifts WHERE doctor_id = ?;", new String[]{Integer.toString(doctorID)});
         ArrayList<HashMap<String, Object>> shifts = new ArrayList<>();
         HashMap<String, Object> currentShift;
+
         while(rows.moveToNext()){
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochMilli(rows.getLong(rows.getColumnIndex("start_time")));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochMilli(rows.getLong(rows.getColumnIndex("end_time")));
+            }
+
             currentShift = new HashMap<>();
-            currentShift.put("start_time", rows.getInt(rows.getColumnIndex("start_time")));
-            currentShift.put("end_time", rows.getInt(rows.getColumnIndex("end_time")));
+            currentShift.put("id", rows.getInt(rows.getColumnIndex("id")));
+            currentShift.put("start_time", start_time);
+            currentShift.put("end_time", end_time);
             shifts.add(currentShift);
         }
         rows.close();
@@ -323,10 +363,12 @@ public class DBManager {
         long currentAppointmentStart, currentAppointmentEnd;
         boolean overlaping = false;
 
-        Cursor rows = db.rawQuery("SELECT start_time, end_time FROM patient_appointments WHERE rejected = 0;", null);
+        Cursor rows = db.rawQuery("SELECT start_time, end_time FROM shifts;", null);
+
         while(rows.moveToNext()){
-            currentAppointmentStart = rows.getInt(rows.getColumnIndex("start_time"));
-            currentAppointmentEnd =  rows.getInt(rows.getColumnIndex("end_time"));
+            currentAppointmentStart = rows.getLong(rows.getColumnIndex("start_time"));
+            currentAppointmentEnd =  rows.getLong(rows.getColumnIndex("end_time"));
+
             if ((endUnixTime >= currentAppointmentStart && endUnixTime <= currentAppointmentEnd) || (startUnixTime >= currentAppointmentStart && startUnixTime <= currentAppointmentEnd)) {
                 overlaping = true;
                 break;
@@ -335,7 +377,7 @@ public class DBManager {
         rows.close();
 
         if (!overlaping) {
-            db.execSQL("INSERT INTO shifts (doctor_id, start_time, end_time) VALUES (?,?,?,?)", new Object[]{doctorID, startUnixTime, endUnixTime});
+            db.execSQL("INSERT INTO shifts (doctor_id, start_time, end_time) VALUES (?,?,?)", new Object[]{doctorID, startUnixTime, endUnixTime});
         }
 
         return overlaping;

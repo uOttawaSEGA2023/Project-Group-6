@@ -52,7 +52,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     "doctor_id INTEGER NOT NULL," +
                     "start_time INTEGER NOT NULL," + // UNIX timestamps
                     "end_time INTEGER NOT NULL," + // UNIX timestamps
-                    "rejected BOOL DEFAULT NULL" + // if rejected == null --> it has not been reviewed yet
+                    "rejected BOOL DEFAULT -1" + // if rejected == -1 --> it has not been reviewed yet
                 ");";
 
         // CREATING shifts TABLE
@@ -80,6 +80,43 @@ public class DBHelper extends SQLiteOpenHelper {
                     "user_type" +
                 ") " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+
+        // inserting default doctor credentials into the DB
+        valuesToInsert = new String[]{"Doctor", "Doctor", "doctor@doctor.com", "Hello123", "1234567890", "123 Admin Dr.", UserType.DOCTOR.type};
+        sqLiteDatabase.execSQL("INSERT INTO users (" +
+                "firstname, " +
+                "lastname, " +
+                "email, " +
+                "password, " +
+                "telephone, " +
+                "address, " +
+                "user_type" +
+                ") " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+
+        // inserting dummy patient credentials into the DB
+        valuesToInsert = new String[]{"John", "Doe", "patient1@docuapp.com", "Hello123", "1234567890", "123 Hex Dr.", "314226975", UserType.PATIENT.type};
+        sqLiteDatabase.execSQL("INSERT INTO users (" +
+                "firstname, " +
+                "lastname, " +
+                "email, " +
+                "password, " +
+                "telephone, " +
+                "address, " +
+                "health_card_number,"+
+                "user_type" +
+                ") " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+
+        // insert dummy appointments
+        valuesToInsert = new String[]{"3", "2", "1700136000", "1700137800"};
+        sqLiteDatabase.execSQL("INSERT INTO patient_appointments (" +
+                "patient_id, " +
+                "doctor_id, " +
+                "start_time, " +
+                "end_time" +
+                ") " +
+                "VALUES (?, ?, ?, ?)", valuesToInsert);
     }
 
     @Override

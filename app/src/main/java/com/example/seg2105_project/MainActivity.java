@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
+                doctorDashboard.putExtra("id", userType.get("id"));
                 doctorDashboard.putExtra("userType", userType.get("user_type"));
                 doctorDashboard.putExtra("approved", userType.get("approved"));
                 doctorDashboard.putExtra("rejected", userType.get("rejected"));

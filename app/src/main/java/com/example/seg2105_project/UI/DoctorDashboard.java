@@ -3,9 +3,12 @@ package com.example.seg2105_project.UI;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -45,6 +48,7 @@ public class DoctorDashboard extends AppCompatActivity {
     String selectedDate;
     String selectedTime;
     String selectedEndTime;
+    int doctor_id;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,6 +83,8 @@ public class DoctorDashboard extends AppCompatActivity {
             }
         }
 
+        doctor_id = Integer.parseInt(intent.getStringExtra("id"));
+
         shifts.setOnClickListener(view -> {
             showSettings(false);
             showShifts();
@@ -93,6 +99,7 @@ public class DoctorDashboard extends AppCompatActivity {
             showSettings(true);
         });
 
+        logoutBtn.bringToFront();
         logoutBtn.setOnClickListener(view -> {
             finish();
         });
@@ -107,29 +114,28 @@ public class DoctorDashboard extends AppCompatActivity {
         Button approvedAppointmentsBtn = new Button(this);
         Button pendingAppointmentsBtn = new Button (this);
         Button rejectedAppointmentsBtn = new Button(this);
+        Button approveAll = new Button(this);
 
         approvedAppointmentsBtn.setText("Approved");
         pendingAppointmentsBtn.setText("Pending");
         rejectedAppointmentsBtn.setText("Rejected");
+        approveAll.setText("Approve All appointments");
 
         appointmentView = new LinearLayout(this);
         mainView.addView(approvedAppointmentsBtn);
         mainView.addView(pendingAppointmentsBtn);
         mainView.addView(rejectedAppointmentsBtn);
+        mainView.addView(approveAll);
+
         mainView.addView(appointmentView);
-
-        //get appointments from db
-
-        ArrayList<HashMap<String, Object>> approvedAppointments = db.getApprovedAppointments();
-        ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
-        ArrayList<HashMap<String, Object>> rejectedAppointments = db.getRejectedAppointments();
 
         TextView message = new TextView(this);
 
         approvedAppointmentsBtn.setOnClickListener(view->{
             appointmentView.removeAllViews();
+            ArrayList<HashMap<String, Object>> approvedAppointments = db.getApprovedAppointments();
 
-            if(approvedAppointments == null){
+            if(approvedAppointments.size()==0){
                 message.setText("No approved appointments");
                 appointmentView.addView(message);
                 return;
@@ -141,19 +147,23 @@ public class DoctorDashboard extends AppCompatActivity {
 
         pendingAppointmentsBtn.setOnClickListener(view->{
             appointmentView.removeAllViews();
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
 
-            if(pendingAppointments == null){
+            if(pendingAppointments.size()==0){
                 message.setText("No pending appointments");
                 appointmentView.addView(message);
                 return;
             }
+
             displayAppointments(pendingAppointments, true, true);
 
         });
+
         rejectedAppointmentsBtn.setOnClickListener(view->{
             appointmentView.removeAllViews();
+            ArrayList<HashMap<String, Object>> rejectedAppointments = db.getRejectedAppointments();
 
-            if(rejectedAppointments == null){
+            if(rejectedAppointments.size()==0){
                 message.setText("No rejected appointments");
                 appointmentView.addView(message);
                 return;
@@ -161,11 +171,31 @@ public class DoctorDashboard extends AppCompatActivity {
             displayAppointments(rejectedAppointments, true, false);
 
         });
+
+        approveAll.setOnClickListener(v ->{
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
+
+            for(int i=0; i < pendingAppointments.size(); i++){
+                HashMap<String, Object> appointment = pendingAppointments.get(i);
+                db.approveAppointment(Integer.parseInt(appointment.get("id").toString()));
+            }
+            pendingAppointmentsBtn.performClick();
+        });
     }
 
     private void displayAppointments(ArrayList<HashMap<String, Object>> appointments, boolean showAcceptBtn, boolean showCancelBtn){
         for(int i=0; i<appointments.size(); i++){
             FrameLayout container = new FrameLayout(this);
+
+            ImageView rectangle = new ImageView(this);
+            rectangle.setImageResource(R.drawable.curve);
+
+            FrameLayout.LayoutParams imageLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            container.addView(rectangle, imageLayoutParams);
 
             TextView appointmentInfo = new TextView(this);
 
@@ -174,7 +204,7 @@ public class DoctorDashboard extends AppCompatActivity {
             //append appoint info
             for(String col:appointment.keySet()){
                 if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("doctor_id")) continue;
-                appointmentInfo.append(col+": "+ appointment.get(col) +" ");
+                appointmentInfo.append(col+": "+ appointment.get(col) +"\n");
             }
 
             //add userInfo
@@ -199,33 +229,55 @@ public class DoctorDashboard extends AppCompatActivity {
 
             }
 
-            container.addView(appointmentInfo);
+            FrameLayout.LayoutParams infoLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+
+            infoLayoutParams.gravity = Gravity.CENTER;
+            appointmentInfo.setMaxLines(3);
+            container.addView(appointmentInfo, infoLayoutParams);
 
             Button acceptBtn = new Button(this);
             acceptBtn.setText("Accept");
+
             Button cancelBtn = new Button(this);
             cancelBtn.setText("Cancel");
 
             acceptBtn.setOnClickListener(view -> {
-                db.approveAppointment((int)appointment.get("id"));
+                db.approveAppointment(Integer.parseInt(appointment.get("id").toString()));
                 appointmentView.removeView(container);
             });
 
             cancelBtn.setOnClickListener(view -> {
-                db.cancelAppointment((int)appointment.get("id"));
+                db.cancelAppointment(Integer.parseInt(appointment.get("id").toString()));
                 appointmentView.removeView(container);
             });
 
             appointmentInfo.setOnClickListener(v ->{
-                if(appointmentInfo.getMaxLines()==1){
-                    appointmentInfo.setMaxLines(10);
+                if(appointmentInfo.getMaxLines() == 3){
+                    appointmentInfo.setMaxLines(6);
                 }else{
-                    appointmentInfo.setMaxLines(1);
+                    appointmentInfo.setMaxLines(3);
                 }
             });
 
-            if(showAcceptBtn) container.addView(acceptBtn);
-            if(showCancelBtn) container.addView(cancelBtn);
+            FrameLayout.LayoutParams acceptLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            acceptLayoutParams.gravity = Gravity.TOP | Gravity.START;
+
+            if(showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
+
+            FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
+            if(showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
 
             appointmentView.addView(container);
         }
@@ -244,7 +296,6 @@ public class DoctorDashboard extends AppCompatActivity {
 
     void showShifts() {
         mainView.removeAllViews();
-
 
         Button calendar = new Button(this);
         calendar.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -278,10 +329,10 @@ public class DoctorDashboard extends AppCompatActivity {
         Button showShift = new Button(this);
         showShift.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         showShift.setText("Show Shifts");
-        mainView.addView(addShift);
+        mainView.addView(showShift);
 
 
-        showShift.setOnClickListener(v -> {
+        addShift.setOnClickListener(v -> {
             try {
                 addShift();
             } catch (ParseException e) {
@@ -289,7 +340,9 @@ public class DoctorDashboard extends AppCompatActivity {
             }
         });
 
-        int statusTextViewId = 123;
+        showShift.setOnClickListener(v->{
+            displayShifts();
+        });
 
         your_textview_id = View.generateViewId();
 
@@ -304,92 +357,11 @@ public class DoctorDashboard extends AppCompatActivity {
 
     }
 
-
-
-    private void showAllShifts(){
-        ArrayList<Map<String, Object>>  userRequests = db.getRegistrationRequests();
-        int request_id = (int) userRequests.get(0).get("id");
-
-        ArrayList<HashMap<String, Object>> approvedShifts = db.getShifts(request_id);
-
-        for(int i=0; i<approvedShifts.size(); i++){
-            FrameLayout container = new FrameLayout(this);
-
-            TextView appointmentInfo = new TextView(this);
-
-
-
-            //append appoint info
-            for(String col:approvedShifts.keySet()){
-                if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("doctor_id")) continue;
-                appointmentInfo.append(col+": "+ approvedShifts.get(col) +" ");
-            }
-
-            //add userInfo
-            Object patient_id = approvedShifts.get("patient_id");
-
-            if(patient_id !=null){
-                //get patientInfo
-                HashMap<String, Object> patient = db.getUser((int)patient_id);
-
-                if(patient.size() !=0){
-                    //append patient info to textView
-                    for(String col:patient.keySet()){
-                        appointmentInfo.append("\n");
-                        if (col.equalsIgnoreCase("id")
-                                || col.equalsIgnoreCase("employee_number")
-                                || col.equalsIgnoreCase("user_type")
-                                || col.equalsIgnoreCase("specialties")) continue;
-
-                        appointmentInfo.append(col+": "+ patient.get(col) +"\n");
-                    }
-                }
-
-            }
-
-            container.addView(appointmentInfo);
-
-
-            Button cancelBtn = new Button(this);
-            cancelBtn.setText("Cancel");
-
-            acceptBtn.setOnClickListener(view -> {
-                db.approveAppointment((int)approvedShifts.get("id"));
-                appointmentView.removeView(container);
-            });
-
-            cancelBtn.setOnClickListener(view -> {
-                db.cancelAppointment((int)approvedShifts.get("id"));
-                appointmentView.removeView(container);
-            });
-
-            appointmentInfo.setOnClickListener(v ->{
-                if(appointmentInfo.getMaxLines()==1){
-                    appointmentInfo.setMaxLines(10);
-                }else{
-                    appointmentInfo.setMaxLines(1);
-                }
-            });
-
-            if(showAcceptBtn) container.addView(acceptBtn);
-            if(showCancelBtn) container.addView(cancelBtn);
-
-            appointmentView.addView(container);
-        }
-
-
-
-    }
     private void addShift () throws ParseException {
-        db = new DBManager(this).open();
-        ArrayList<Map<String, Object>> userRequests = db.getRegistrationRequests();
 
-        if (!userRequests.isEmpty()) {
-            int request_id = (int) userRequests.get(0).get("id");
-
-            String startTotal = selectedDate + " " + selectedTime;
-            String endTotal = selectedDate + " " + selectedEndTime;
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US);
+            String startTotal = selectedDate + " " + selectedTime + ":00";;
+            String endTotal = selectedDate + " " + selectedEndTime + ":00";
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
             try {
                 Date startDate = dateFormat.parse(startTotal);
                 Date endDate = dateFormat.parse(endTotal);
@@ -398,82 +370,81 @@ public class DoctorDashboard extends AppCompatActivity {
                 String startDate1 = dateFormat.format(startDate);
                 String endDate1 = dateFormat.format(endDate);
 
-                boolean check =  db.createShift(request_id, startDate1, endDate1);
-                if(check != false){
+                boolean check =  db.createShift(doctor_id, startDate1, endDate1);
+                if(check){
                     //Error conflict
                     TextView foundTextView = findViewById(your_textview_id );
                     foundTextView.setText("error conflict");
                 }
+
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-        }
     }
 
+    private void displayShifts(){
+        if(appointmentView != null){
+            mainView.removeView(appointmentView);
+        }
 
+        appointmentView = new LinearLayout(this);
+        mainView.addView(appointmentView);
 
-    private void displayShifts(ArrayList<HashMap<String, Object>> shifts){
+        ArrayList<HashMap<String, Object>> shifts = db.getShifts(doctor_id);
+
         for(int i=0; i<shifts.size(); i++){
             FrameLayout container = new FrameLayout(this);
 
-            TextView appointmentInfo = new TextView(this);
+            ImageView rectangle = new ImageView(this);
+            rectangle.setImageResource(R.drawable.curve);
 
-            HashMap<String, Object> appointment = shifts.get(i);
+            FrameLayout.LayoutParams imageLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+
+            container.addView(rectangle, imageLayoutParams);
+
+            TextView shiftInfo = new TextView(this);
+
+            HashMap<String, Object> shift = shifts.get(i);
 
             //append appoint info
-            for(String col:appointment.keySet()){
+            for(String col:shift.keySet()){
                 if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("doctor_id")) continue;
-                appointmentInfo.append(col+": "+ appointment.get(col) +" ");
+                shiftInfo.append(col+": "+ shift.get(col) +"\n");
             }
 
-            //add userInfo
-            Object patient_id = appointment.get("patient_id");
-
-            if(patient_id !=null){
-                //get patientInfo
-                HashMap<String, Object> patient = db.getUser((int)patient_id);
-
-                if(patient.size() !=0){
-                    //append patient info to textView
-                    for(String col:patient.keySet()){
-                        appointmentInfo.append("\n");
-                        if (col.equalsIgnoreCase("id")
-                                || col.equalsIgnoreCase("employee_number")
-                                || col.equalsIgnoreCase("user_type")
-                                || col.equalsIgnoreCase("specialties")) continue;
-
-                        appointmentInfo.append(col+": "+ patient.get(col) +"\n");
-                    }
-                }
-
-            }
-
-            container.addView(appointmentInfo);
+            FrameLayout.LayoutParams infoLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
 
 
+            infoLayoutParams.gravity = Gravity.CENTER;
+            container.addView(shiftInfo, infoLayoutParams);
+
+//
             Button cancelBtn = new Button(this);
             cancelBtn.setText("Cancel");
 
-
-
             cancelBtn.setOnClickListener(view -> {
-                db.cancelAppointment((int)appointment.get("id"));
+                db.deleteShift(Integer.parseInt(shift.get("id").toString()));
                 appointmentView.removeView(container);
             });
 
-            appointmentInfo.setOnClickListener(v ->{
-                if(appointmentInfo.getMaxLines()==1){
-                    appointmentInfo.setMaxLines(10);
-                }else{
-                    appointmentInfo.setMaxLines(1);
-                }
-            });
+            FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
 
+            cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
 
-            if(showCancelBtn) container.addView(cancelBtn);
+            container.addView(cancelBtn, cancelLayoutParams);
 
             appointmentView.addView(container);
         }
+
     }
 
 
@@ -542,7 +513,5 @@ public class DoctorDashboard extends AppCompatActivity {
 
         timePickerDialog.show();
     }
-
-    void showAppointmentss(boolean visibility){}
 
 }

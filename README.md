@@ -3,11 +3,10 @@ project-project-group-6 created by GitHub Classroom
 
 ### Administrator Credentials:
 
-Email: admin@admin.com
-
-Password: Hello123
+- Email: admin@admin.com
+- Password: Hello123
 
 ### Doctor Credentials:
-Email: doctor@doctor.com
-Password: Hello123
+- Email: doctor@doctor.com
+- Password: Hello123
 

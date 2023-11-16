@@ -7,3 +7,7 @@ Email: admin@admin.com
 
 Password: Hello123
 
+### Doctor Credentials:
+Email: doctor@doctor.com
+Password: Hello123
+

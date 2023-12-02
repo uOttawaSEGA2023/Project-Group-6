@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         adminDashboard = new Intent(this, AdminDashboard.class);
         doctorDashboard = new Intent(this, DoctorDashboard.class);
+        patientDashboard = new Intent(this, DoctorDashboard.class);
 
         patientDashboard = new Intent(this, PatientDashboard.class);
 
@@ -72,10 +73,13 @@ public class MainActivity extends AppCompatActivity {
                 doctorDashboard.putExtra("rejected", userType.get("rejected"));
 
                 startActivity(doctorDashboard);
+                startActivity(patientDashboard);
 
             } else { // user does not exist -> invalid credentials
                 Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT).show();
             }
+
+
 
         });
     }

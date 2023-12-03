@@ -29,11 +29,14 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Locale;
+
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 
 import android.widget.DatePicker;
+
 import androidx.fragment.app.DialogFragment;
+
 import java.util.Date;
 
 public class DoctorDashboard extends AppCompatActivity {
@@ -49,6 +52,7 @@ public class DoctorDashboard extends AppCompatActivity {
     String selectedTime;
     String selectedEndTime;
     int doctor_id;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,14 +72,12 @@ public class DoctorDashboard extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {
-            if(intent.getStringExtra("approved").equalsIgnoreCase("true")) {
+            if (intent.getStringExtra("approved").equalsIgnoreCase("true")) {
                 userTypeText.append(intent.getStringExtra("userType"));
-            }
-            else{
-                if(intent.getStringExtra("rejected").equalsIgnoreCase("true")) {
+            } else {
+                if (intent.getStringExtra("rejected").equalsIgnoreCase("true")) {
                     userTypeText.setText("Your registration request has been rejected by the administrator. Please contact them via email: admin@admin.com or phone: +1 314 142 2953");
-                }
-                else {
+                } else {
                     userTypeText.setText(("Your account hasn't been approved yet"));
                 }
 
@@ -107,12 +109,12 @@ public class DoctorDashboard extends AppCompatActivity {
 
     }
 
-    void showAppointments(){
+    void showAppointments() {
         showSettings(false);
         mainView.removeAllViews();
 
         Button approvedAppointmentsBtn = new Button(this);
-        Button pendingAppointmentsBtn = new Button (this);
+        Button pendingAppointmentsBtn = new Button(this);
         Button rejectedAppointmentsBtn = new Button(this);
         Button approveAll = new Button(this);
 
@@ -131,11 +133,11 @@ public class DoctorDashboard extends AppCompatActivity {
 
         TextView message = new TextView(this);
 
-        approvedAppointmentsBtn.setOnClickListener(view->{
+        approvedAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> approvedAppointments = db.getApprovedAppointments();
+            ArrayList<HashMap<String, Object>> approvedAppointments = db.getAppointments(0);
 
-            if(approvedAppointments.size()==0){
+            if (approvedAppointments.size() == 0) {
                 message.setText("No approved appointments");
                 appointmentView.addView(message);
                 return;
@@ -145,11 +147,11 @@ public class DoctorDashboard extends AppCompatActivity {
 
         });
 
-        pendingAppointmentsBtn.setOnClickListener(view->{
+        pendingAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1);
 
-            if(pendingAppointments.size()==0){
+            if (pendingAppointments.size() == 0) {
                 message.setText("No pending appointments");
                 appointmentView.addView(message);
                 return;
@@ -159,11 +161,11 @@ public class DoctorDashboard extends AppCompatActivity {
 
         });
 
-        rejectedAppointmentsBtn.setOnClickListener(view->{
+        rejectedAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> rejectedAppointments = db.getRejectedAppointments();
+            ArrayList<HashMap<String, Object>> rejectedAppointments = db.getAppointments(0);
 
-            if(rejectedAppointments.size()==0){
+            if (rejectedAppointments.size() == 0) {
                 message.setText("No rejected appointments");
                 appointmentView.addView(message);
                 return;
@@ -172,10 +174,10 @@ public class DoctorDashboard extends AppCompatActivity {
 
         });
 
-        approveAll.setOnClickListener(v ->{
-            ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
+        approveAll.setOnClickListener(v -> {
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1);
 
-            for(int i=0; i < pendingAppointments.size(); i++){
+            for (int i = 0; i < pendingAppointments.size(); i++) {
                 HashMap<String, Object> appointment = pendingAppointments.get(i);
                 db.approveAppointment(Integer.parseInt(appointment.get("id").toString()));
             }
@@ -183,8 +185,8 @@ public class DoctorDashboard extends AppCompatActivity {
         });
     }
 
-    private void displayAppointments(ArrayList<HashMap<String, Object>> appointments, boolean showAcceptBtn, boolean showCancelBtn){
-        for(int i=0; i<appointments.size(); i++){
+    private void displayAppointments(ArrayList<HashMap<String, Object>> appointments, boolean showAcceptBtn, boolean showCancelBtn) {
+        for (int i = 0; i < appointments.size(); i++) {
             FrameLayout container = new FrameLayout(this);
 
             ImageView rectangle = new ImageView(this);
@@ -202,28 +204,28 @@ public class DoctorDashboard extends AppCompatActivity {
             HashMap<String, Object> appointment = appointments.get(i);
 
             //append appoint info
-            for(String col:appointment.keySet()){
+            for (String col : appointment.keySet()) {
                 if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("doctor_id")) continue;
-                appointmentInfo.append(col+": "+ appointment.get(col) +"\n");
+                appointmentInfo.append(col + ": " + appointment.get(col) + "\n");
             }
 
             //add userInfo
             Object patient_id = appointment.get("patient_id");
 
-            if(patient_id !=null){
+            if (patient_id != null) {
                 //get patientInfo
-                HashMap<String, Object> patient = db.getUser((int)patient_id);
+                HashMap<String, Object> patient = db.getUser((int) patient_id);
 
-                if(patient.size() !=0){
+                if (patient.size() != 0) {
                     //append patient info to textView
-                    for(String col:patient.keySet()){
+                    for (String col : patient.keySet()) {
                         appointmentInfo.append("\n");
                         if (col.equalsIgnoreCase("id")
                                 || col.equalsIgnoreCase("employee_number")
                                 || col.equalsIgnoreCase("user_type")
                                 || col.equalsIgnoreCase("specialties")) continue;
 
-                        appointmentInfo.append(col+": "+ patient.get(col) +"\n");
+                        appointmentInfo.append(col + ": " + patient.get(col) + "\n");
                     }
                 }
 
@@ -255,10 +257,10 @@ public class DoctorDashboard extends AppCompatActivity {
                 appointmentView.removeView(container);
             });
 
-            appointmentInfo.setOnClickListener(v ->{
-                if(appointmentInfo.getMaxLines() == 3){
+            appointmentInfo.setOnClickListener(v -> {
+                if (appointmentInfo.getMaxLines() == 3) {
                     appointmentInfo.setMaxLines(6);
-                }else{
+                } else {
                     appointmentInfo.setMaxLines(3);
                 }
             });
@@ -269,7 +271,7 @@ public class DoctorDashboard extends AppCompatActivity {
             );
             acceptLayoutParams.gravity = Gravity.TOP | Gravity.START;
 
-            if(showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
+            if (showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
 
             FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -277,18 +279,18 @@ public class DoctorDashboard extends AppCompatActivity {
             );
 
             cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
-            if(showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
+            if (showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
 
             appointmentView.addView(container);
         }
     }
-    void showSettings(boolean visibility){
-        if(visibility) {
+
+    void showSettings(boolean visibility) {
+        if (visibility) {
             mainView.removeAllViews();
             userTypeText.setVisibility(View.VISIBLE);
             logoutBtn.setVisibility(View.VISIBLE);
-        }
-        else{
+        } else {
             userTypeText.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
         }
@@ -340,7 +342,7 @@ public class DoctorDashboard extends AppCompatActivity {
             }
         });
 
-        showShift.setOnClickListener(v->{
+        showShift.setOnClickListener(v -> {
             displayShifts();
         });
 
@@ -353,37 +355,36 @@ public class DoctorDashboard extends AppCompatActivity {
         mainView.addView(statusTextView);
 
 
-
-
     }
 
-    private void addShift () throws ParseException {
+    private void addShift() throws ParseException {
 
-            String startTotal = selectedDate + " " + selectedTime + ":00";;
-            String endTotal = selectedDate + " " + selectedEndTime + ":00";
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-            try {
-                Date startDate = dateFormat.parse(startTotal);
-                Date endDate = dateFormat.parse(endTotal);
+        String startTotal = selectedDate + " " + selectedTime + ":00";
+        ;
+        String endTotal = selectedDate + " " + selectedEndTime + ":00";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        try {
+            Date startDate = dateFormat.parse(startTotal);
+            Date endDate = dateFormat.parse(endTotal);
 
 
-                String startDate1 = dateFormat.format(startDate);
-                String endDate1 = dateFormat.format(endDate);
+            String startDate1 = dateFormat.format(startDate);
+            String endDate1 = dateFormat.format(endDate);
 
-                boolean check =  db.createShift(doctor_id, startDate1, endDate1);
-                if(check){
-                    //Error conflict
-                    TextView foundTextView = findViewById(your_textview_id );
-                    foundTextView.setText("error conflict");
-                }
-
-            } catch (ParseException e) {
-                e.printStackTrace();
+            boolean check = db.createShift(doctor_id, startDate1, endDate1);
+            if (check) {
+                //Error conflict
+                TextView foundTextView = findViewById(your_textview_id);
+                foundTextView.setText("error conflict");
             }
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
     }
 
-    private void displayShifts(){
-        if(appointmentView != null){
+    private void displayShifts() {
+        if (appointmentView != null) {
             mainView.removeView(appointmentView);
         }
 
@@ -392,7 +393,7 @@ public class DoctorDashboard extends AppCompatActivity {
 
         ArrayList<HashMap<String, Object>> shifts = db.getShifts(doctor_id);
 
-        for(int i=0; i<shifts.size(); i++){
+        for (int i = 0; i < shifts.size(); i++) {
             FrameLayout container = new FrameLayout(this);
 
             ImageView rectangle = new ImageView(this);
@@ -410,9 +411,9 @@ public class DoctorDashboard extends AppCompatActivity {
             HashMap<String, Object> shift = shifts.get(i);
 
             //append appoint info
-            for(String col:shift.keySet()){
+            for (String col : shift.keySet()) {
                 if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("doctor_id")) continue;
-                shiftInfo.append(col+": "+ shift.get(col) +"\n");
+                shiftInfo.append(col + ": " + shift.get(col) + "\n");
             }
 
             FrameLayout.LayoutParams infoLayoutParams = new FrameLayout.LayoutParams(

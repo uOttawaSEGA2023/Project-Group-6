@@ -1,6 +1,7 @@
 package com.example.seg2105_project.UI;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.content.Intent;
 import android.view.View;
@@ -50,13 +51,13 @@ public class AdminDashboard extends AppCompatActivity {
 
         //fetch user requests and append them to view container
         db = new DBManager(this).open();
-        ArrayList<Map<String, Object>>  userRequests = db.getRegistrationRequests();
-        if(!userRequests.isEmpty()) addRequestsToView(userRequests);
+        ArrayList<Map<String, Object>> userRequests = db.getRegistrationRequests();
+        if (!userRequests.isEmpty()) addRequestsToView(userRequests);
 
         //rejected requests container
         rectangleContainer1 = findViewById(R.id.rectangleContainer1);
-        ArrayList<Map<String, Object>>  rejectedRequests = db.getRejectedRegistrationRequests();
-        if(!rejectedRequests.isEmpty()) addToRejectionList(rejectedRequests);
+        ArrayList<Map<String, Object>> rejectedRequests = db.getRejectedRegistrationRequests();
+        if (!rejectedRequests.isEmpty()) addToRejectionList(rejectedRequests);
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {
@@ -104,7 +105,7 @@ public class AdminDashboard extends AppCompatActivity {
     }
 
     private void addRequestsToView(ArrayList<Map<String, Object>> requests) {
-        for(int i =0; i <requests.size(); i++){
+        for (int i = 0; i < requests.size(); i++) {
             FrameLayout container = new FrameLayout(this);
 
             ImageView rectangle = new ImageView(this);
@@ -141,9 +142,9 @@ public class AdminDashboard extends AppCompatActivity {
             TextView user_info = new TextView(this);
             StringBuilder info = new StringBuilder();
 
-            for(String col:user.keySet()){
+            for (String col : user.keySet()) {
                 if (col.equalsIgnoreCase("id")) continue;
-                info.append(col+": "+ user.get(col) +"\n");
+                info.append(col + ": " + user.get(col) + "\n");
             }
 
             user_info.setText(info);
@@ -161,7 +162,7 @@ public class AdminDashboard extends AppCompatActivity {
 
 
             /*************** Button interactions *********/
-            int request_id = Integer.parseInt((String)user.get("id"));
+            int request_id = Integer.parseInt((String) user.get("id"));
 
             acceptButton.setOnClickListener(view -> {
                 db.approveRegistration(request_id);
@@ -175,7 +176,7 @@ public class AdminDashboard extends AppCompatActivity {
                 rectangleContainer.removeView(container);
 
                 //add request to rejected List
-                ArrayList<Map<String, Object>> rejected_user= new ArrayList<>();
+                ArrayList<Map<String, Object>> rejected_user = new ArrayList<>();
                 rejected_user.add(requests.get(finalI));
                 addToRejectionList(rejected_user);
             });
@@ -185,8 +186,8 @@ public class AdminDashboard extends AppCompatActivity {
 
     }
 
-    public void addToRejectionList(ArrayList<Map<String, Object>> requests){
-        for(int i =0; i <requests.size(); i++){
+    public void addToRejectionList(ArrayList<Map<String, Object>> requests) {
+        for (int i = 0; i < requests.size(); i++) {
             FrameLayout container = new FrameLayout(this);
 
             ImageView rectangle = new ImageView(this);
@@ -213,9 +214,9 @@ public class AdminDashboard extends AppCompatActivity {
             TextView user_info = new TextView(this);
             StringBuilder info = new StringBuilder();
 
-            for(String col:user.keySet()){
+            for (String col : user.keySet()) {
                 if (col.equalsIgnoreCase("id")) continue;
-                info.append(col+": "+ user.get(col) +"\n");
+                info.append(col + ": " + user.get(col) + "\n");
             }
 
             user_info.setText(info);
@@ -232,7 +233,7 @@ public class AdminDashboard extends AppCompatActivity {
 
 
             /*************** Button interactions *********/
-            int request_id = Integer.parseInt((String)user.get("id"));
+            int request_id = Integer.parseInt((String) user.get("id"));
 
             acceptButton.setOnClickListener(view -> {
                 db.approveRegistration(request_id);

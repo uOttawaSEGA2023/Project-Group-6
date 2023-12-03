@@ -1,6 +1,7 @@
 package com.example.seg2105_project.UI;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.os.Bundle;
 import android.content.Intent;
 import android.view.Gravity;
@@ -19,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.SearchView;
@@ -39,12 +41,10 @@ public class PatientDashboard extends AppCompatActivity {
         setContentView(R.layout.patient_dashboard);
 
 
-
         mainView = (LinearLayout) findViewById(R.id.mainView);
 
 
         userTypeText = findViewById(R.id.user_type_text);
-
 
 
         FloatingActionButton home = findViewById(R.id.doctorHome);
@@ -55,21 +55,18 @@ public class PatientDashboard extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (intent.hasExtra("userType")) {
-            if(intent.getStringExtra("approved").equalsIgnoreCase("true")) {
+            if (intent.getStringExtra("approved").equalsIgnoreCase("true")) {
                 userTypeText.append(intent.getStringExtra("userType"));
-            }
-            else{
-                if(intent.getStringExtra("rejected").equalsIgnoreCase("true")) {
+            } else {
+                if (intent.getStringExtra("rejected").equalsIgnoreCase("true")) {
                     userTypeText.setText("Your registration request has been rejected by the administrator. Please contact them via email: admin@admin.com or phone: +1 314 142 2953");
-                }
-                else {
+                } else {
                     userTypeText.setText(("Your account hasn't been approved yet"));
                 }
             }
 
 
         }
-
 
 
         home.setOnClickListener(view -> {
@@ -89,23 +86,22 @@ public class PatientDashboard extends AppCompatActivity {
     }
 
 
-    void showSettings(boolean visibility){
-        if(visibility) {
+    void showSettings(boolean visibility) {
+        if (visibility) {
             mainView.removeAllViews();
             userTypeText.setVisibility(View.VISIBLE);
             logoutBtn.setVisibility(View.VISIBLE);
-        }
-        else{
+        } else {
             userTypeText.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
         }
     }
 
 
-//showAcceptBtn --> booking
+    //showAcceptBtn --> booking
     //showCancelBtn --> opt out only if user cancels before 60 minutes
-    private void displayAppointments(ArrayList<HashMap<String, Object>> appointments, boolean showAcceptBtn, boolean showCancelBtn){
-        for(int i=0; i<appointments.size(); i++){
+    private void displayAppointments(ArrayList<HashMap<String, Object>> appointments, boolean showAcceptBtn, boolean showCancelBtn) {
+        for (int i = 0; i < appointments.size(); i++) {
             FrameLayout container = new FrameLayout(this);
 
             ImageView rectangle = new ImageView(this);
@@ -123,28 +119,28 @@ public class PatientDashboard extends AppCompatActivity {
             HashMap<String, Object> appointment = appointments.get(i);
 
             //append appoint info
-            for(String col:appointment.keySet()){
+            for (String col : appointment.keySet()) {
                 if (col.equalsIgnoreCase("id") || col.equalsIgnoreCase("patient_id")) continue;
-                appointmentInfo.append(col+": "+ appointment.get(col) +"\n");
+                appointmentInfo.append(col + ": " + appointment.get(col) + "\n");
             }
 
             //add userInfo
             Object patient_id = appointment.get("patient_id");
 
-            if(patient_id !=null){
+            if (patient_id != null) {
                 //get patientInfo
-                HashMap<String, Object> patient = db.getUser((int)patient_id);
+                HashMap<String, Object> patient = db.getUser((int) patient_id);
 
-                if(patient.size() !=0){
+                if (patient.size() != 0) {
                     //append patient info to textView
-                    for(String col:patient.keySet()){
+                    for (String col : patient.keySet()) {
                         appointmentInfo.append("\n");
                         if (col.equalsIgnoreCase("id")
                                 || col.equalsIgnoreCase("employee_number")
                                 || col.equalsIgnoreCase("user_type")
                                 || col.equalsIgnoreCase("specialties")) continue;
 
-                        appointmentInfo.append(col+": "+ patient.get(col) +"\n");
+                        appointmentInfo.append(col + ": " + patient.get(col) + "\n");
                     }
                 }
 
@@ -177,10 +173,10 @@ public class PatientDashboard extends AppCompatActivity {
                 appointmentView.removeView(container);
             });
 
-            appointmentInfo.setOnClickListener(v ->{
-                if(appointmentInfo.getMaxLines() == 3){
+            appointmentInfo.setOnClickListener(v -> {
+                if (appointmentInfo.getMaxLines() == 3) {
                     appointmentInfo.setMaxLines(6);
-                }else{
+                } else {
                     appointmentInfo.setMaxLines(3);
                 }
             });
@@ -191,7 +187,7 @@ public class PatientDashboard extends AppCompatActivity {
             );
             acceptLayoutParams.gravity = Gravity.TOP | Gravity.START;
 
-            if(showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
+            if (showAcceptBtn) container.addView(acceptBtn, acceptLayoutParams);
 
             FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -199,13 +195,13 @@ public class PatientDashboard extends AppCompatActivity {
             );
 
             cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
-            if(showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
+            if (showCancelBtn) container.addView(cancelBtn, cancelLayoutParams);
 
             appointmentView.addView(container);
         }
     }
 
-    void showAppointments(){
+    void showAppointments() {
         showSettings(false);
         mainView.removeAllViews();
 
@@ -237,11 +233,11 @@ public class PatientDashboard extends AppCompatActivity {
 
         TextView message = new TextView(this);
 
-        upcomingAppointmentsBtn.setOnClickListener(view->{
+        upcomingAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> approvedAppointments = db.getApprovedAppointments();
+            ArrayList<HashMap<String, Object>> approvedAppointments = db.getAppointments(0);
 
-            if(approvedAppointments.size()==0){
+            if (approvedAppointments.size() == 0) {
                 message.setText("No approved appointments");
                 appointmentView.addView(message);
                 return;
@@ -252,18 +248,16 @@ public class PatientDashboard extends AppCompatActivity {
         });
 
 
+        pastAppointments.setOnClickListener(v -> {
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1);
 
-        pastAppointments.setOnClickListener(v ->{
-            ArrayList<HashMap<String, Object>> pendingAppointments = db.getPendingAppointments();
-
-            for(int i=0; i < pendingAppointments.size(); i++){
+            for (int i = 0; i < pendingAppointments.size(); i++) {
                 HashMap<String, Object> appointment = pendingAppointments.get(i);
                 db.approveAppointment(Integer.parseInt(appointment.get("id").toString()));
             }
 
         });
     }
-
 
 
 }

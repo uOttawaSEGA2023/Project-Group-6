@@ -43,8 +43,9 @@ public class SignUpPage extends AppCompatActivity {
 
     //Specialty dropdown variables
     ArrayList<Integer> selectedSpecialties = new ArrayList<>();
-    String specialtiesArray[] ={"Family Medicine", "Internal Medicine", "Pediatrics", "Obstetrics", "Gynecology"};
+    String specialtiesArray[] = {"Family Medicine", "Internal Medicine", "Pediatrics", "Obstetrics", "Gynecology"};
     boolean[] bselectedSpecialties;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         db = new DBManager(this).open();
@@ -66,7 +67,7 @@ public class SignUpPage extends AppCompatActivity {
         employeeNumber = findViewById(R.id.employee_input);
         specialties = findViewById(R.id.specialties_input);
 
-        specialties.setOnClickListener(new View.OnClickListener(){
+        specialties.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 bselectedSpecialties = new boolean[specialtiesArray.length];
@@ -146,17 +147,41 @@ public class SignUpPage extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                if(!validName( firstName.getText().toString())){ Snackbar.make(view,"Enter a valid first name", Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validName( lastName.getText().toString())){ Snackbar.make(view,"Enter a valid last name", Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com", Snackbar.LENGTH_SHORT).show(); return;}
+                if (!validName(firstName.getText().toString())) {
+                    Snackbar.make(view, "Enter a valid first name", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!validName(lastName.getText().toString())) {
+                    Snackbar.make(view, "Enter a valid last name", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!validEmail(email.getText().toString())) {
+                    Snackbar.make(view, "Enter a valid email e.g user@domain.com", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
 
-                if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number", Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validAddress( address.getText().toString())){ Snackbar.make(view,"Enter valid address (no special characters)", Snackbar.LENGTH_SHORT).show(); return;}
-                if(!validPhoneNumber( phoneNumber.getText().toString())){ Snackbar.make(view,"Enter a valid phone number (10 digits)", Snackbar.LENGTH_SHORT).show(); return;}
+                if (!validPassword(password.getText().toString())) {
+                    Snackbar.make(view, "Password should be 8 characters, One capital letter and one number", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!validAddress(address.getText().toString())) {
+                    Snackbar.make(view, "Enter valid address (no special characters)", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!validPhoneNumber(phoneNumber.getText().toString())) {
+                    Snackbar.make(view, "Enter a valid phone number (10 digits)", Snackbar.LENGTH_SHORT).show();
+                    return;
+                }
 
                 if (userType.equals(UserType.DOCTOR)) {
-                    if(!validEmployeeNumber( employeeNumber.getText().toString())){ Snackbar.make(view,"Enter a valid Employee number (4-10 digit ID)",Snackbar.LENGTH_SHORT).show(); return;}
-                    if(!validSpecialties( specialties.getText().toString())){ Snackbar.make(view,"Please select specialties",Snackbar.LENGTH_SHORT).show(); return;}
+                    if (!validEmployeeNumber(employeeNumber.getText().toString())) {
+                        Snackbar.make(view, "Enter a valid Employee number (4-10 digit ID)", Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (!validSpecialties(specialties.getText().toString())) {
+                        Snackbar.make(view, "Please select specialties", Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
 
                     Doctor doctor = new Doctor(
                             specialties.getText().toString(),
@@ -169,9 +194,11 @@ public class SignUpPage extends AppCompatActivity {
                             Integer.parseInt(employeeNumber.getText().toString())
                     );
                     db.sendDoctorRegistrationRequest(doctor);
-                }
-                else if (userType.equals(UserType.PATIENT)) {
-                    if(!validHealthCard( healthCardNumber.getText().toString())){ Snackbar.make(view,"Enter a valid health card number (10-12 numbers)", Snackbar.LENGTH_SHORT).show(); return;}
+                } else if (userType.equals(UserType.PATIENT)) {
+                    if (!validHealthCard(healthCardNumber.getText().toString())) {
+                        Snackbar.make(view, "Enter a valid health card number (10-12 numbers)", Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
 
                     Patient patient = new Patient(
                             healthCardNumber.getText().toString(),
@@ -262,7 +289,7 @@ public class SignUpPage extends AppCompatActivity {
         return Pattern.matches(employeeNumberRegex, employeeNumber);
     }
 
-    public boolean validSpecialties(String specialties){
+    public boolean validSpecialties(String specialties) {
         return !specialties.isEmpty();
     }
 

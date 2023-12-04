@@ -135,7 +135,7 @@ public class DoctorDashboard extends AppCompatActivity {
 
         approvedAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> approvedAppointments = db.getAppointments(0);
+            ArrayList<HashMap<String, Object>> approvedAppointments = db.getAppointments(0, doctor_id);
 
             if (approvedAppointments.size() == 0) {
                 message.setText("No approved appointments");
@@ -149,7 +149,7 @@ public class DoctorDashboard extends AppCompatActivity {
 
         pendingAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1);
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1, doctor_id);
 
             if (pendingAppointments.size() == 0) {
                 message.setText("No pending appointments");
@@ -163,7 +163,7 @@ public class DoctorDashboard extends AppCompatActivity {
 
         rejectedAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> rejectedAppointments = db.getAppointments(0);
+            ArrayList<HashMap<String, Object>> rejectedAppointments = db.getAppointments(0, doctor_id);
 
             if (rejectedAppointments.size() == 0) {
                 message.setText("No rejected appointments");
@@ -175,7 +175,7 @@ public class DoctorDashboard extends AppCompatActivity {
         });
 
         approveAll.setOnClickListener(v -> {
-            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1);
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1, doctor_id);
 
             for (int i = 0; i < pendingAppointments.size(); i++) {
                 HashMap<String, Object> appointment = pendingAppointments.get(i);

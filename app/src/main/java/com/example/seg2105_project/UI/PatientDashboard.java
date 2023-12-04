@@ -35,6 +35,8 @@ public class PatientDashboard extends AppCompatActivity {
 
     LinearLayout mainView;
 
+    int patient_id;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +69,7 @@ public class PatientDashboard extends AppCompatActivity {
 
 
         }
+        patient_id = Integer.parseInt(intent.getStringExtra("id"));
 
 
         home.setOnClickListener(view -> {
@@ -235,7 +238,7 @@ public class PatientDashboard extends AppCompatActivity {
 
         upcomingAppointmentsBtn.setOnClickListener(view -> {
             appointmentView.removeAllViews();
-            ArrayList<HashMap<String, Object>> approvedAppointments = db.getAppointments(0);
+            ArrayList<HashMap<String, Object>> approvedAppointments = db.getAppointments(0, patient_id);
 
             if (approvedAppointments.size() == 0) {
                 message.setText("No approved appointments");
@@ -249,7 +252,7 @@ public class PatientDashboard extends AppCompatActivity {
 
 
         pastAppointments.setOnClickListener(v -> {
-            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1);
+            ArrayList<HashMap<String, Object>> pendingAppointments = db.getAppointments(-1, patient_id);
 
             for (int i = 0; i < pendingAppointments.size(); i++) {
                 HashMap<String, Object> appointment = pendingAppointments.get(i);

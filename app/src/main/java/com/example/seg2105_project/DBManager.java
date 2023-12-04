@@ -36,6 +36,76 @@ public class DBManager {
         db.close();
     }
 
+    /************************************************
+     *
+     *                     General func
+     *
+     ************************************************/
+
+    public Map<String, String> userExists(String email, String password) throws IllegalArgumentException {
+        String[] columnsToRetrieve = new String[]{"user_type", "id"};
+        String[] valuesToSearch = new String[]{email, password}; // values to search for in the DB
+        boolean userExists;
+        Cursor cursor;
+        HashMap<String, String> user = new HashMap<>();
+
+        /********* Look in user's table **************/
+        cursor = db.query("users", columnsToRetrieve, "email = ? AND password = ?", valuesToSearch, null, null, null);
+        userExists = cursor.moveToFirst();
+        if (userExists) {
+            int columnIndex = cursor.getColumnIndex("user_type");
+            user.put("user_type", cursor.getString(columnIndex));
+            user.put("approved", "true");
+
+            int idIndex = cursor.getColumnIndex("id");
+            user.put("id", cursor.getString(idIndex));
+        } else {
+
+            /********* Look in registration_requests' table **************/
+            cursor = db.query("registration_requests", new String[]{"user_type", "rejected"}, "email = ? AND password = ?", valuesToSearch, null, null, null);
+            userExists = cursor.moveToFirst();
+            if (userExists) {
+                int user_type_i = cursor.getColumnIndex("user_type");
+                int rejected_i = cursor.getColumnIndex("rejected");
+
+                user.put("user_type", cursor.getString(user_type_i));
+                user.put("approved", "false");
+
+                int rejected = cursor.getInt(rejected_i);
+                user.put("rejected", (rejected != 0) ? "true" : "false");
+
+
+            }
+        }
+        cursor.close();
+        return user;
+    }
+
+    /**
+     * return info about a user
+     */
+    @SuppressLint("Range")
+    public HashMap<String, Object> getUser(int id) {
+        Cursor rows = db.rawQuery("SELECT * FROM users WHERE id = ?;", new String[]{Integer.toString(id)});
+        rows.moveToNext();
+        HashMap<String, Object> userInfo = new HashMap<>();
+        userInfo.put("firstname", rows.getString(rows.getColumnIndex("firstname")));
+        userInfo.put("lastname", rows.getString(rows.getColumnIndex("lastname")));
+        userInfo.put("email", rows.getString(rows.getColumnIndex("email")));
+        userInfo.put("telephone", rows.getString(rows.getColumnIndex("telephone")));
+        userInfo.put("address", rows.getString(rows.getColumnIndex("address")));
+        userInfo.put("health_card_number", rows.getString(rows.getColumnIndex("health_card_number")));
+        userInfo.put("employee_number", rows.getInt(rows.getColumnIndex("employee_number")));
+        userInfo.put("specialties", rows.getString(rows.getColumnIndex("specialties")));
+        userInfo.put("user_type", UserType.fromString(rows.getString(rows.getColumnIndex("user_type"))));
+        return userInfo;
+    }
+
+    /************************************************
+     *
+     *                     ADMIN
+     *
+     ************************************************/
     public void sendPatientRegistrationRequest(Patient patient) {
         String firstName = patient.getFirstName();
         String lastName = patient.getLastName();
@@ -48,17 +118,7 @@ public class DBManager {
 
         Object[] valuesToInsert = new Object[]{firstName, lastName, email, password, telephone, address, healthCardNumber, userType};
 
-        db.execSQL("INSERT INTO registration_requests (" +
-                "firstname, " +
-                "lastname, " +
-                "email, " +
-                "password, " +
-                "telephone, " +
-                "address, " +
-                "health_card_number, " +
-                "user_type" +
-                ") " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+        db.execSQL("INSERT INTO registration_requests (" + "firstname, " + "lastname, " + "email, " + "password, " + "telephone, " + "address, " + "health_card_number, " + "user_type" + ") " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
     }
 
     public void sendDoctorRegistrationRequest(Doctor doctor) {
@@ -74,18 +134,7 @@ public class DBManager {
 
         Object[] valuesToInsert = new Object[]{firstName, lastName, email, password, telephone, address, employeeNumber, specialties, userType};
 
-        db.execSQL("INSERT INTO registration_requests (" +
-                "firstname, " +
-                "lastname, " +
-                "email, " +
-                "password, " +
-                "telephone, " +
-                "address, " +
-                "employee_number, " +
-                "specialties, " +
-                "user_type" +
-                ") " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+        db.execSQL("INSERT INTO registration_requests (" + "firstname, " + "lastname, " + "email, " + "password, " + "telephone, " + "address, " + "employee_number, " + "specialties, " + "user_type" + ") " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
     }
 
     public void approveRegistration(int requestID) {
@@ -207,44 +256,12 @@ public class DBManager {
         return users;
     }
 
-    public Map<String, String> userExists(String email, String password) throws IllegalArgumentException {
-        String[] columnsToRetrieve = new String[]{"user_type", "id"};
-        String[] valuesToSearch = new String[]{email, password}; // values to search for in the DB
-        boolean userExists;
-        Cursor cursor;
-        HashMap<String, String> user = new HashMap<>();
 
-        /********* Look in user's table **************/
-        cursor = db.query("users", columnsToRetrieve, "email = ? AND password = ?", valuesToSearch, null, null, null);
-        userExists = cursor.moveToFirst();
-        if (userExists) {
-            int columnIndex = cursor.getColumnIndex("user_type");
-            user.put("user_type", cursor.getString(columnIndex));
-            user.put("approved", "true");
-
-            int idIndex = cursor.getColumnIndex("id");
-            user.put("id", cursor.getString(idIndex));
-        } else {
-
-            /********* Look in registration_requests' table **************/
-            cursor = db.query("registration_requests", new String[]{"user_type", "rejected"}, "email = ? AND password = ?", valuesToSearch, null, null, null);
-            userExists = cursor.moveToFirst();
-            if (userExists) {
-                int user_type_i = cursor.getColumnIndex("user_type");
-                int rejected_i = cursor.getColumnIndex("rejected");
-
-                user.put("user_type", cursor.getString(user_type_i));
-                user.put("approved", "false");
-
-                int rejected = cursor.getInt(rejected_i);
-                user.put("rejected", (rejected != 0) ? "true" : "false");
-
-
-            }
-        }
-        cursor.close();
-        return user;
-    }
+    /************************************************
+     *
+     *                     DOCTOR
+     *
+     ************************************************/
 
     @SuppressLint("Range")
     public HashMap<String, Object> getShiftInfo(int shift_id) {
@@ -261,21 +278,76 @@ public class DBManager {
                 end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
             }
 
-            for (String col : columns) {
-                info.put(col, rows.getInt(rows.getColumnIndex(col)));
-            }
+            info.put("id", rows.getInt(rows.getColumnIndex("id")));
+            info.put("start_time", start_time);
+            info.put("end_time", end_time);
+            info.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+
         }
         return info;
 
     }
 
+    @SuppressLint("Range")
+    public ArrayList<HashMap<String, Object>> searchAppointment(String specialty) {
+        //1. get doctor with that specialty
+        Cursor rows = db.rawQuery("SELECT * FROM users WHERE specialties LIKE ?;", new String[]{"%" + specialty + "%"});
+
+        ArrayList<Integer> doctors = new ArrayList<>();
+
+        while (rows.moveToNext()) {
+            doctors.add(rows.getInt(rows.getColumnIndex("id")));
+        }
+
+        //2. if none is found return null
+        if (doctors.isEmpty()) {
+            return null;
+
+        }
+        rows.close();
+
+        ArrayList<HashMap<String, Object>> appointmentSlots = new ArrayList<>();
+        //3. find shifts for doctors with desired specialties
+        for (Integer doctor_id : doctors) {
+            HashMap<String, Object> shifts = new HashMap<>();
+
+            rows = db.rawQuery("SELECT * FROM shifts WHERE id = ? ;", new String[]{Integer.toString(doctor_id)});
+
+            while (rows.moveToNext()) {
+                Instant start_time = null, end_time = null;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    start_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("start_time")));
+                }
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
+                }
+
+                shifts.put("id", rows.getInt(rows.getColumnIndex("id")));
+
+                shifts.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+                shifts.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+
+                shifts.put("start_time", start_time);
+                shifts.put("end_time", end_time);
+            }
+
+            rows.close();
+            appointmentSlots.add(shifts);
+
+        }
+
+        return appointmentSlots;
+
+    }
+
     /**
-     * @param status `-1`: pending | `0`: approved | `1`: rejected
+     * @param rejected_status `-1`: pending | `0`: approved | `1`: rejected
+     * @param user_id         doctor or patient ID
      * @return ArrayList of appointments
      */
     @SuppressLint("Range")
-    public ArrayList<HashMap<String, Object>> getAppointments(int status) {
-        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = ?;", new String[]{Integer.toString(status)});
+    public ArrayList<HashMap<String, Object>> getAppointments(int rejected_status, int user_id) {
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = ? AND (doctor_id = ? OR patient_id= ?);", new String[]{Integer.toString(rejected_status), Integer.toString(user_id), Integer.toString(user_id)});
 
         ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
         HashMap<String, Object> currentAppointment;
@@ -305,10 +377,6 @@ public class DBManager {
         }
         rows.close();
         return appointments;
-    }
-
-    public void cancelAppointment(int appointmentID) {
-        db.execSQL("UPDATE patient_appointments SET rejected = 1 WHERE id = ?;", new Object[]{appointmentID});
     }
 
     public void approveAppointment(int appointmentID) {
@@ -368,84 +436,32 @@ public class DBManager {
         return overlaping;
     }
 
-    public void deleteShift(int id) {
+    public boolean deleteShift(int id) {
+        //check if shift is linked to a patient appointment
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE shift_id = ?", new String[]{Integer.toString(id)});
+
+        if (rows.getCount() == 0) return false;
+
         db.execSQL("DELETE FROM shifts WHERE id = ?;", new Object[]{id});
+        return true;
     }
 
-    /**
-     * return info about a user
-     */
-    @SuppressLint("Range")
-    public HashMap<String, Object> getUser(int id) {
-        Cursor rows = db.rawQuery("SELECT * FROM users WHERE id = ?;", new String[]{Integer.toString(id)});
-        rows.moveToNext();
-        HashMap<String, Object> userInfo = new HashMap<>();
-        userInfo.put("firstname", rows.getString(rows.getColumnIndex("firstname")));
-        userInfo.put("lastname", rows.getString(rows.getColumnIndex("lastname")));
-        userInfo.put("email", rows.getString(rows.getColumnIndex("email")));
-        userInfo.put("telephone", rows.getString(rows.getColumnIndex("telephone")));
-        userInfo.put("address", rows.getString(rows.getColumnIndex("address")));
-        userInfo.put("health_card_number", rows.getString(rows.getColumnIndex("health_card_number")));
-        userInfo.put("employee_number", rows.getInt(rows.getColumnIndex("employee_number")));
-        userInfo.put("specialties", rows.getString(rows.getColumnIndex("specialties")));
-        userInfo.put("user_type", UserType.fromString(rows.getString(rows.getColumnIndex("user_type"))));
-        return userInfo;
-    }
-
-    ArrayList<HashMap<String, Object>> getAllPastAppointments(int patientID) {
-        return null;
-    }
-
-    public void cancelAppointments(int patientID, HashMap<String, Object> appointments) {
-
-    }
-
-    @SuppressLint("Range")
-    public ArrayList<HashMap<String, Object>> getAllAppointments(int patientID) {
-        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE patient_id = ?;", new String[]{Integer.toString(patientID)});
-        ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
-
-        HashMap<String, Object> currentAppointment;
-        while (rows.moveToNext()) {
-            Instant start_time = null, end_time = null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                start_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("start_time")));
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
-            }
-
-            currentAppointment = new HashMap<>();
-            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
-            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
-            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
-            currentAppointment.put("start_time", start_time);
-            currentAppointment.put("end_time", end_time);
-            appointments.add(currentAppointment);
-        }
-
-        rows.close();
-
-        return appointments;
+    /************************************************
+     *
+     *                     PATIENT
+     *
+     ************************************************/
+    public void cancelAppointment(int appointmentID) {
+        db.execSQL("UPDATE patient_appointments SET rejected = 1 WHERE id = ?;", new Object[]{appointmentID});
     }
 
     public boolean createAppointments(int patientID, int doctorID, String start, String end) {
         try {
-            db.execSQL("INSERT INTO patient_appointments (" +
-                    "patient_id, " +
-                    "doctor_id, " +
-                    "start_time, " +
-                    "end_time" +
-                    ") " +
-                    "VALUES (?, ?, ?, ?)", new Object[]{patientID, doctorID, start, end});
+            db.execSQL("INSERT INTO patient_appointments (" + "patient_id, " + "doctor_id, " + "start_time, " + "end_time" + ") " + "VALUES (?, ?, ?, ?)", new Object[]{patientID, doctorID, start, end});
             return true;
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public boolean getTimeAppointments(String start, int patientID) {
-        return true;
     }
 
     boolean rateDoctor(int patientID, int doctorID, int rating) {
@@ -456,11 +472,6 @@ public class DBManager {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    public ArrayList<String> searchSpecialty(String specialty) {
-
-        return null;
     }
 
 }

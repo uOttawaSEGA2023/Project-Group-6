@@ -55,34 +55,49 @@ public class MainActivity extends AppCompatActivity {
 
         loginBtn.setOnClickListener(view -> {
 
-            if(!validEmail( email.getText().toString())){ Snackbar.make(view,"Enter a valid email e.g user@domain.com",Snackbar.LENGTH_SHORT).show(); return;}
-            if(!validPassword( password.getText().toString())){ Snackbar.make(view,"Password should be 8 characters, One capital letter and one number",Snackbar.LENGTH_SHORT).show(); return;}
+            if (!validEmail(email.getText().toString())) {
+                Snackbar.make(view, "Enter a valid email e.g user@domain.com", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+            if (!validPassword(password.getText().toString())) {
+                Snackbar.make(view, "Password should be 8 characters, One capital letter and one number", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
 
             Map<String, String> userType = db.userExists(email.getText().toString().toLowerCase(), password.getText().toString());
 
             if (!userType.isEmpty()) { // user exists
-                if(userType.get("user_type").equalsIgnoreCase("admin")){
+                if (userType.get("user_type").equalsIgnoreCase("admin")) {
                     adminDashboard.putExtra("userType", userType.get("user_type"));
                     startActivity(adminDashboard);
                     return;
                 }
+                if (userType.get("user_type").equalsIgnoreCase("doctor")) {
+                    doctorDashboard.putExtra("id", userType.get("id"));
+                    doctorDashboard.putExtra("userType", userType.get("user_type"));
+                    doctorDashboard.putExtra("approved", userType.get("approved"));
+                    doctorDashboard.putExtra("rejected", userType.get("rejected"));
 
-                doctorDashboard.putExtra("id", userType.get("id"));
-                doctorDashboard.putExtra("userType", userType.get("user_type"));
-                doctorDashboard.putExtra("approved", userType.get("approved"));
-                doctorDashboard.putExtra("rejected", userType.get("rejected"));
+                    startActivity(doctorDashboard);
+                    return;
+                }
 
-                startActivity(doctorDashboard);
+                patientDashboard.putExtra("id", userType.get("id"));
+                patientDashboard.putExtra("userType", userType.get("user_type"));
+                patientDashboard.putExtra("approved", userType.get("approved"));
+                patientDashboard.putExtra("rejected", userType.get("rejected"));
+
                 startActivity(patientDashboard);
+                return;
 
             } else { // user does not exist -> invalid credentials
                 Snackbar.make(view, "Invalid email or password.", Snackbar.LENGTH_SHORT).show();
             }
 
 
-
         });
     }
+
     public boolean validEmail(String email) {
         //valid email format
         String emailRegex = "[a-zA-Z0-9._-]+@[a-zA-Z]+\\.+[a-zA-Z]+";

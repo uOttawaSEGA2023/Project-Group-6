@@ -21,12 +21,15 @@ import android.widget.AdapterView;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.SearchView;
-
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 
 public class PatientDashboard extends AppCompatActivity {
     private UserType userType;
@@ -177,6 +180,16 @@ public class PatientDashboard extends AppCompatActivity {
 
     }
 
+    private static long calculateDifferenceInMinutes(Date startDate, Date endDate) {
+        long startMillis = startDate.getTime();
+        long endMillis = endDate.getTime();
+        long millisDifference = endMillis - startMillis;
+
+        // Convert milliseconds to minutes
+        return millisDifference / (60 * 1000);
+    }
+
+
     private void displayUpcomingAppointments(ArrayList<HashMap<String, Object>> allUpcomingApponmtents) {
         if (appointmentView != null) {
             mainView.removeView(appointmentView);
@@ -230,11 +243,20 @@ public class PatientDashboard extends AppCompatActivity {
 
 
 
-            ///Can only cancel if there's 60 minutes before the appointments
 
-            LocalTime currentTime = LocalTime.now();
+            long currentMillis = System.currentTimeMillis();
 
-            long minutesDifference = ChronoUnit.MINUTES.between(currentTime, startshifttime);
+
+            long anotherMillis = startimeAppointment;
+
+
+            Date currentDate = new Date(currentMillis);
+            Date anotherDate = new Date(anotherMillis);
+
+
+            long minutesDifference = calculateDifferenceInMinutes(currentDate, anotherDate);
+
+
             if(minutesDifference  < 60){
                 cancelBtn.setOnClickListener(view -> {
                     db.cancelAppointment(Integer.parseInt(shift.get("id").toString()));

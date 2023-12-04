@@ -107,15 +107,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 ") " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
 
-        // insert dummy appointments
-        valuesToInsert = new String[]{"3", "2", "1700136000", "1700137800"};
-        sqLiteDatabase.execSQL("INSERT INTO patient_appointments (" +
-                "patient_id, " +
-                "doctor_id, " +
-                "shift_id" +
-                ") " +
-                "VALUES (?, ?, ?, ?)", valuesToInsert);
-
         //Doctor rating
         // CREATING shifts TABLE
         String createRatingTable = "CREATE TABLE IF NOT EXISTS ratings (" +

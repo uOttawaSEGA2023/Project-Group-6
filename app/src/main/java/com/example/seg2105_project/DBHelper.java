@@ -59,7 +59,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "start_time INTEGER NOT NULL," + // UNIX timestamps
                 "end_time INTEGER NOT NULL," + // UNIX timestamps
-                "doctor_id INTEGER NOT NULL" +
+                "doctor_id INTEGER NOT NULL," +
+                "patient_id Integer DEFAULT 0" +
                 ");";
 
         sqLiteDatabase.execSQL(usersTableCreationQuery);
@@ -81,7 +82,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 "VALUES (?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
 
         // inserting default doctor credentials into the DB
-        valuesToInsert = new String[]{"Doctor", "Doctor", "doctor@doctor.com", "Hello123", "1234567890", "123 Admin Dr.", UserType.DOCTOR.type};
+        valuesToInsert = new String[]{"Doctor", "Doctor", "doctor@doctor.com", "Hello123", "1234567890", "123 Admin Dr.", UserType.DOCTOR.type, "Family Medicine"};
         sqLiteDatabase.execSQL("INSERT INTO users (" +
                 "firstname, " +
                 "lastname, " +
@@ -89,7 +90,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 "password, " +
                 "telephone, " +
                 "address, " +
-                "user_type" +
+                "user_type," +
+                "specialties" +
                 ") " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
 
@@ -107,6 +109,10 @@ public class DBHelper extends SQLiteOpenHelper {
                 ") " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
 
+        //Patient appointment
+        valuesToInsert = new String[]{"John", "Doe", "patient@docuapp.com", "Hello123", "1234567890", "123 Hex Dr.", "314226975", UserType.PATIENT.type};
+        sqLiteDatabase.execSQL("INSERT INTO patient_appointments(patient_id, doctor_id, shift_id,rejected) values(?,?,?,?);",
+                new String[]{Integer.toString(3), Integer.toString(1), Integer.toString(1), Integer.toString(-1)});
         //Doctor rating
         // CREATING shifts TABLE
         String createRatingTable = "CREATE TABLE IF NOT EXISTS ratings (" +
@@ -117,7 +123,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 ");";
 
         sqLiteDatabase.execSQL(createRatingTable);
-
 
     }
 

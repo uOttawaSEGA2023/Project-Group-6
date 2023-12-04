@@ -271,20 +271,12 @@ public class DBManager {
         String[] columns = new String[]{"id", "start_time", "end_time", "doctor_id"};
 
         while (rows.moveToNext()) {
-            Instant start_time = null, end_time = null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                start_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("start_time")));
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
-            }
-
             info.put("id", rows.getInt(rows.getColumnIndex("id")));
-            info.put("start_time", start_time);
-            info.put("end_time", end_time);
+            info.put("start_time", rows.getLong(rows.getColumnIndex("start_time")));
+            info.put("end_time", rows.getLong(rows.getColumnIndex("end_time")));
             info.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
-
         }
+
         return info;
 
     }
@@ -303,16 +295,16 @@ public class DBManager {
         //2. if none is found return null
         if (doctors.isEmpty()) {
             return null;
-
         }
-        rows.close();
 
         ArrayList<HashMap<String, Object>> appointmentSlots = new ArrayList<>();
         //3. find shifts for doctors with desired specialties
         for (Integer doctor_id : doctors) {
+            Log.e("doctor_id", Integer.toString(doctor_id));
+
             HashMap<String, Object> shifts = new HashMap<>();
 
-            rows = db.rawQuery("SELECT * FROM shifts WHERE id = ? ;", new String[]{Integer.toString(doctor_id)});
+            rows = db.rawQuery("SELECT * FROM shifts WHERE doctor_id = ? AND patient_id = 0 ;", new String[]{Integer.toString(doctor_id)});
 
             while (rows.moveToNext()) {
                 Instant start_time = null, end_time = null;
@@ -323,10 +315,9 @@ public class DBManager {
                     end_time = Instant.ofEpochSecond(rows.getLong(rows.getColumnIndex("end_time")));
                 }
 
-                shifts.put("id", rows.getInt(rows.getColumnIndex("id")));
+                shifts.put("shift_id", rows.getInt(rows.getColumnIndex("id")));
 
-                shifts.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
-                shifts.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+                shifts.put("doctor_id", doctor_id);
 
                 shifts.put("start_time", start_time);
                 shifts.put("end_time", end_time);
@@ -358,22 +349,14 @@ public class DBManager {
 
             HashMap<String, Object> shift_info = getShiftInfo(shift_id);
 
-            Instant start_time = null, end_time = null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                start_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("start_time").toString()));
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                end_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("end_time").toString()));
-            }
-
             currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
 
             currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
             currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
 
             currentAppointment.put("shift_id", shift_id);
-            currentAppointment.put("start_time", start_time);
-            currentAppointment.put("end_time", end_time);
+            currentAppointment.put("start_time", shift_info.get("start_time"));
+            currentAppointment.put("end_time", shift_info.get("end_time"));
             appointments.add(currentAppointment);
         }
         rows.close();
@@ -456,9 +439,10 @@ public class DBManager {
         db.execSQL("UPDATE patient_appointments SET rejected = 1 WHERE id = ?;", new Object[]{appointmentID});
     }
 
-    public boolean createAppointments(int patientID, int doctorID, String start, String end) {
+    public boolean createAppointments(int patientID, int doctorID, int shift_id) {
         try {
-            db.execSQL("INSERT INTO patient_appointments (" + "patient_id, " + "doctor_id, " + "start_time, " + "end_time" + ") " + "VALUES (?, ?, ?, ?)", new Object[]{patientID, doctorID, start, end});
+            db.execSQL("INSERT INTO patient_appointments (" + "patient_id, " + "doctor_id, " + "shift_id" + "rejected" + ") " + "VALUES (?, ?, ?, ?)",
+                    new Object[]{Integer.toString(patientID), Integer.toString(doctorID), Integer.toString(shift_id), Integer.toString(-1)});
             return true;
         } catch (Exception e) {
             return false;
@@ -466,27 +450,73 @@ public class DBManager {
     }
 
     @SuppressLint("Range")
-    public ArrayList<HashMap<String, Object>> getPastAppointments(int patient_id) {
-        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = 0 AND (doctor_id = ? OR patient_id= ?);", new String[]{Integer.toString(patient_id)});
+    public ArrayList<HashMap<String, Object>> getPastAppointments(int user_id) {
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = 0 AND (doctor_id = ? OR patient_id= ?);", new String[]{Integer.toString(user_id), Integer.toString(user_id)});
 
         ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
         HashMap<String, Object> currentAppointment;
+
         while (rows.moveToNext()) {
             currentAppointment = new HashMap<>();
             @SuppressLint("Range") int shift_id = rows.getInt(rows.getColumnIndex("shift_id"));
 
             HashMap<String, Object> shift_info = getShiftInfo(shift_id);
 
-            //if end time of appointment shift is less than skip row
-            if (Long.parseLong(shift_info.get("end_time").toString()) < (System.currentTimeMillis() / 1000L))
+            Log.e("end_time", shift_info.get("end_time").toString());
+
+            Log.e("current_time", Long.toString(System.currentTimeMillis()));
+            //if end time of appointment shift is greater than current time skip row
+            if (Long.parseLong(shift_info.get("end_time").toString()) > System.currentTimeMillis())
                 continue;
 
             Instant start_time = null, end_time = null;
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                start_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("start_time").toString()));
+                start_time = Instant.ofEpochMilli(Long.parseLong(shift_info.get("start_time").toString()));
             }
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                end_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("end_time").toString()));
+                end_time = Instant.ofEpochMilli(Long.parseLong(shift_info.get("end_time").toString()));
+            }
+
+            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
+
+            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+
+            currentAppointment.put("shift_id", shift_id);
+            currentAppointment.put("start_time", start_time);
+            currentAppointment.put("end_time", end_time);
+            appointments.add(currentAppointment);
+        }
+        rows.close();
+        return appointments;
+    }
+
+    @SuppressLint("Range")
+    public ArrayList<HashMap<String, Object>> getUpcomingAppointments(int patient_id) {
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = 0 AND (doctor_id = ? OR patient_id= ?);", new String[]{Integer.toString(patient_id), Integer.toString(patient_id)});
+
+        ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
+        HashMap<String, Object> currentAppointment;
+
+        while (rows.moveToNext()) {
+            currentAppointment = new HashMap<>();
+            @SuppressLint("Range") int shift_id = rows.getInt(rows.getColumnIndex("shift_id"));
+
+            HashMap<String, Object> shift_info = getShiftInfo(shift_id);
+
+            Log.e("start_time", shift_info.get("start_time").toString());
+
+            Log.e("current_time", Long.toString(System.currentTimeMillis()));
+            //if start time of appointment shift is less than current time skip row
+            if (Long.parseLong(shift_info.get("start_time").toString()) > System.currentTimeMillis())
+                continue;
+
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochMilli(Long.parseLong(shift_info.get("start_time").toString()));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochMilli(Long.parseLong(shift_info.get("end_time").toString()));
             }
 
             currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
@@ -505,7 +535,7 @@ public class DBManager {
 
     @SuppressLint("Range")
     public ArrayList<HashMap<String, Object>> getAllAppointments(int user_id) {
-        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE doctor_id = ? OR patient_id= ?);",
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE doctor_id = ? OR patient_id= ?;",
                 new String[]{Integer.toString(user_id), Integer.toString(user_id)});
 
         ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
@@ -516,29 +546,21 @@ public class DBManager {
 
             HashMap<String, Object> shift_info = getShiftInfo(shift_id);
 
-            Instant start_time = null, end_time = null;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                start_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("start_time").toString()));
-            }
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                end_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("end_time").toString()));
-            }
-
             currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
 
             currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
             currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
 
             currentAppointment.put("shift_id", shift_id);
-            currentAppointment.put("start_time", start_time);
-            currentAppointment.put("end_time", end_time);
+            currentAppointment.put("start_time", shift_info.get("start_time"));
+            currentAppointment.put("end_time", shift_info.get("end_time"));
             appointments.add(currentAppointment);
         }
         rows.close();
         return appointments;
     }
 
-    boolean rateDoctor(int patientID, int doctorID, int rating) {
+    public boolean rateDoctor(int patientID, int doctorID, int rating) {
         try {
             db.execSQL("INSERT INTO ratings (doctor_id, patient_id, rating) VALUES (?,?,?)", new Object[]{patientID, doctorID, rating});
 

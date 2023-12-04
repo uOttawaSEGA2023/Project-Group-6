@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.content.Intent;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
@@ -17,19 +18,20 @@ import com.example.seg2105_project.DBManager;
 import com.example.seg2105_project.R;
 import com.example.seg2105_project.UserType;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import android.widget.AdapterView;
+import com.google.android.material.snackbar.Snackbar;
 
-import java.text.ParseException;
+
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.SearchView;
+
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
+import java.util.logging.Logger;
 
 public class PatientDashboard extends AppCompatActivity {
     private UserType userType;
@@ -44,6 +46,8 @@ public class PatientDashboard extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        db = new DBManager(this).open();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.patient_dashboard);
 
@@ -75,7 +79,6 @@ public class PatientDashboard extends AppCompatActivity {
 
         }
         patient_id = Integer.parseInt(intent.getStringExtra("id"));
-
 
         home.setOnClickListener(view -> {
             showSettings(false);
@@ -117,13 +120,31 @@ public class PatientDashboard extends AppCompatActivity {
         mainView.addView(appointmentView);
 
 
+        ArrayList<HashMap<String, Object>> appointmentSlots = db.searchAppointment(specialties);
 
+        if (appointmentSlots == null) {
+            Snackbar.make(appointmentView, "No available appointment with a " + selectedValue + " doctor!", Snackbar.LENGTH_SHORT).show();
+            return;
+        }
 
-        ArrayList<HashMap<String, Object>> specialt = db.searchAppointment(specialties);
+        if (appointmentSlots.size() == 0) {
+            Snackbar.make(appointmentView, "No available appointment with " + selectedValue + " doctor!", Snackbar.LENGTH_SHORT).show();
+            return;
+        }
 
+        for (int i = 0; i < appointmentSlots.size(); i++) {
+            if (appointmentSlots.get(i) == null) {
+                Snackbar.make(appointmentView, "No appointments found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+            if (appointmentSlots.get(i).size() == 0) {
+                Snackbar.make(appointmentView, "No appointments found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
 
+            int doctor_id = Integer.parseInt(appointmentSlots.get(i).get("doctor_id").toString());
+            int shift_id = Integer.parseInt(appointmentSlots.get(i).get("shift_id").toString());
 
-        for (int i = 0; i < specialt.size(); i++) {
             FrameLayout container = new FrameLayout(this);
 
             ImageView rectangle = new ImageView(this);
@@ -138,7 +159,7 @@ public class PatientDashboard extends AppCompatActivity {
 
             TextView shiftInfo = new TextView(this);
 
-            HashMap<String, Object> shift = specialt.get(i);
+            HashMap<String, Object> shift = appointmentSlots.get(i);
 
             //append appoint info
             for (String col : shift.keySet()) {
@@ -151,31 +172,27 @@ public class PatientDashboard extends AppCompatActivity {
                     FrameLayout.LayoutParams.WRAP_CONTENT
             );
 
-
             infoLayoutParams.gravity = Gravity.CENTER;
             container.addView(shiftInfo, infoLayoutParams);
 
-//
-
-
-            appointmentView.addView(container);
             Button approvedAppointmentsBtn = new Button(this);
-            approvedAppointmentsBtn.setText("Approve");
-
-
-
+            approvedAppointmentsBtn.setText("Take appointment");
 
             approvedAppointmentsBtn.setOnClickListener(view -> {
                 appointmentView.removeAllViews();
-                db.createAppointments(patient_id, doctorid, starttime, endtime);
+                db.createAppointments(patient_id, doctor_id, shift_id);
 
             });
-            mainView.addView(approvedAppointmentsBtn);
 
+            FrameLayout.LayoutParams acceptLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            acceptLayoutParams.gravity = Gravity.BOTTOM | Gravity.CENTER;
 
+            container.addView(approvedAppointmentsBtn, acceptLayoutParams);
 
-
-
+            appointmentView.addView(container);
         }
 
     }
@@ -197,12 +214,6 @@ public class PatientDashboard extends AppCompatActivity {
 
         appointmentView = new LinearLayout(this);
         mainView.addView(appointmentView);
-
-
-
-
-
-
 
 
         for (int i = 0; i < allUpcomingApponmtents.size(); i++) {
@@ -237,52 +248,24 @@ public class PatientDashboard extends AppCompatActivity {
             infoLayoutParams.gravity = Gravity.CENTER;
             container.addView(shiftInfo, infoLayoutParams);
 
-//
             Button cancelBtn = new Button(this);
             cancelBtn.setText("Cancel");
 
 
+            cancelBtn.setOnClickListener(view -> {
+                db.cancelAppointment(Integer.parseInt(shift.get("id").toString()));
+                appointmentView.removeView(container);
+            });
 
 
-            long currentMillis = System.currentTimeMillis();
+            FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
 
-
-            long anotherMillis = startimeAppointment;
-
-
-            Date currentDate = new Date(currentMillis);
-            Date anotherDate = new Date(anotherMillis);
-
-
-            long minutesDifference = calculateDifferenceInMinutes(currentDate, anotherDate);
-
-
-            if(minutesDifference  < 60){
-                cancelBtn.setOnClickListener(view -> {
-                    db.cancelAppointment(Integer.parseInt(shift.get("id").toString()));
-                    appointmentView.removeView(container);
-                });
-
-
-                FrameLayout.LayoutParams cancelLayoutParams = new FrameLayout.LayoutParams(
-                        FrameLayout.LayoutParams.WRAP_CONTENT,
-                        FrameLayout.LayoutParams.WRAP_CONTENT
-                );
-
-                cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
-                container.addView(cancelBtn, cancelLayoutParams);
-                appointmentView.addView(container);
-
-            }
-
-
-
-
-
-
-
-
-
+            cancelLayoutParams.gravity = Gravity.TOP | Gravity.END;
+            container.addView(cancelBtn, cancelLayoutParams);
+            appointmentView.addView(container);
 
         }
 
@@ -295,9 +278,6 @@ public class PatientDashboard extends AppCompatActivity {
 
         appointmentView = new LinearLayout(this);
         mainView.addView(appointmentView);
-
-
-
 
         for (int i = 0; i < appointments.size(); i++) {
             FrameLayout container = new FrameLayout(this);
@@ -331,30 +311,26 @@ public class PatientDashboard extends AppCompatActivity {
             infoLayoutParams.gravity = Gravity.CENTER;
             container.addView(shiftInfo, infoLayoutParams);
 
-//
+            Button rateDoctor = new Button(this);
+            rateDoctor.setText("Rate Doctor");
 
-
-
-            appointmentView.addView(container);
-            Button approvedAppointmentsBtn = new Button(this);
-            approvedAppointmentsBtn.setText("Rate Doctor");
-            mainView.addView(approvedAppointmentsBtn);
-
-
-
-
-            approvedAppointmentsBtn.setOnClickListener(view -> {
+            int doctor_id = Integer.parseInt(appointments.get(i).get("doctor_id").toString());
+            rateDoctor.setOnClickListener(view -> {
                 appointmentView.removeAllViews();
-                db.rateDoctor(patient_id, doctorid, 4);
+                db.rateDoctor(patient_id, doctor_id, 4);
 
             });
 
-
-
-
+            FrameLayout.LayoutParams rateLayout = new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+            );
+            rateLayout.gravity = Gravity.BOTTOM | Gravity.CENTER;
+            container.addView(rateDoctor, rateLayout);
+            appointmentView.addView(container);
         }
-
     }
+
     String selectedValue;
 
     void showAppointments() {
@@ -363,15 +339,12 @@ public class PatientDashboard extends AppCompatActivity {
 
         Button upcomingAppointmentsBtn = new Button(this);
 
-
         Button pastAppointments = new Button(this);
-
 
         Spinner dropdown = new Spinner(this);
         String[] items = new String[]{"Family Medicine", "Internal Medicine", "Pediatrics", "Obstetrics", "Gynecology"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
         dropdown.setAdapter(adapter);
-        SearchView find = new SearchView(this);
 
         upcomingAppointmentsBtn.setText("Upcoming Appointments");
         pastAppointments.setText("Past Appointments");
@@ -381,55 +354,62 @@ public class PatientDashboard extends AppCompatActivity {
         mainView.addView(pastAppointments);
         mainView.addView(dropdown);
 
-
-        mainView.addView(find);
-
-
         mainView.addView(appointmentView);
-
-        TextView message = new TextView(this);
 
         dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
 
                 selectedValue = (String) parentView.getItemAtPosition(position);
-
-
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parentView) {
                 // Do nothing here
             }
+
+
         });
 
+        Button searchBtn = new Button(this);
+        searchBtn.setText("Search");
 
+        searchBtn.setOnClickListener(v -> {
+            Log.e("selected_val", selectedValue);
+            displayAppointments(selectedValue);
+        });
+
+        mainView.addView(searchBtn);
 
         upcomingAppointmentsBtn.setOnClickListener(view -> {
 
-            ArrayList<HashMap<String, Object>> allUpcomingApponmtents = db.getAllAppointments(patient_id);
+            ArrayList<HashMap<String, Object>> allUpcomingApponmtents = db.getUpcomingAppointments(patient_id);
+            if (allUpcomingApponmtents == null) {
+                Snackbar.make(view, "No upcoming appointments found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (allUpcomingApponmtents.size() == 0) {
+                Snackbar.make(view, "No upcoming appointments found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
             displayUpcomingAppointments(allUpcomingApponmtents);
 
         });
 
-        find.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                displayAppointments(selectedValue);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-
-                return true;
-            }
-        });
-
-
         pastAppointments.setOnClickListener(v -> {
             ArrayList<HashMap<String, Object>> allPastAppointments = db.getPastAppointments(patient_id);
+
+            if (allPastAppointments == null) {
+                Snackbar.make(v, "No past appointments found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (allPastAppointments.size() == 0) {
+                Snackbar.make(v, "No past appointments found", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
             getPastAppointments(allPastAppointments);
 
         });

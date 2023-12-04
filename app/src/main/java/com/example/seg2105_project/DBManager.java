@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.content.Context;
 import android.util.Log;
 
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -462,6 +463,44 @@ public class DBManager {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    @SuppressLint("Range")
+    public ArrayList<HashMap<String, Object>> getPastAppointments(int patient_id) {
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE rejected = 0 AND (doctor_id = ? OR patient_id= ?);", new String[]{Integer.toString(patient_id)});
+
+        ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
+        HashMap<String, Object> currentAppointment;
+        while (rows.moveToNext()) {
+            currentAppointment = new HashMap<>();
+            @SuppressLint("Range") int shift_id = rows.getInt(rows.getColumnIndex("shift_id"));
+
+            HashMap<String, Object> shift_info = getShiftInfo(shift_id);
+
+            //if end time of appointment shift is less than skip row
+            if (Long.parseLong(shift_info.get("end_time").toString()) < (System.currentTimeMillis() / 1000L))
+                continue;
+
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("start_time").toString()));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("end_time").toString()));
+            }
+
+            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
+
+            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+
+            currentAppointment.put("shift_id", shift_id);
+            currentAppointment.put("start_time", start_time);
+            currentAppointment.put("end_time", end_time);
+            appointments.add(currentAppointment);
+        }
+        rows.close();
+        return appointments;
     }
 
     boolean rateDoctor(int patientID, int doctorID, int rating) {

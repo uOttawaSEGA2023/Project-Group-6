@@ -58,6 +58,7 @@ public class DoctorDashboard extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.doctor_dashboard);
 
+
         db = new DBManager(this).open();
         mainView = (LinearLayout) findViewById(R.id.mainView);
 

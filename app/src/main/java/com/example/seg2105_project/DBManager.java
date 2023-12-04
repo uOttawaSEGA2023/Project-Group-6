@@ -503,6 +503,41 @@ public class DBManager {
         return appointments;
     }
 
+    @SuppressLint("Range")
+    public ArrayList<HashMap<String, Object>> getAllAppointments(int user_id) {
+        Cursor rows = db.rawQuery("SELECT * FROM patient_appointments WHERE doctor_id = ? OR patient_id= ?);",
+                new String[]{Integer.toString(user_id), Integer.toString(user_id)});
+
+        ArrayList<HashMap<String, Object>> appointments = new ArrayList<>();
+        HashMap<String, Object> currentAppointment;
+        while (rows.moveToNext()) {
+            currentAppointment = new HashMap<>();
+            @SuppressLint("Range") int shift_id = rows.getInt(rows.getColumnIndex("shift_id"));
+
+            HashMap<String, Object> shift_info = getShiftInfo(shift_id);
+
+            Instant start_time = null, end_time = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                start_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("start_time").toString()));
+            }
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                end_time = Instant.ofEpochSecond(Long.parseLong(shift_info.get("end_time").toString()));
+            }
+
+            currentAppointment.put("id", rows.getInt(rows.getColumnIndex("id")));
+
+            currentAppointment.put("patient_id", rows.getInt(rows.getColumnIndex("patient_id")));
+            currentAppointment.put("doctor_id", rows.getInt(rows.getColumnIndex("doctor_id")));
+
+            currentAppointment.put("shift_id", shift_id);
+            currentAppointment.put("start_time", start_time);
+            currentAppointment.put("end_time", end_time);
+            appointments.add(currentAppointment);
+        }
+        rows.close();
+        return appointments;
+    }
+
     boolean rateDoctor(int patientID, int doctorID, int rating) {
         try {
             db.execSQL("INSERT INTO ratings (doctor_id, patient_id, rating) VALUES (?,?,?)", new Object[]{patientID, doctorID, rating});

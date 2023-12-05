@@ -98,13 +98,13 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public boolean validEmail(String email) {
+    public static boolean validEmail(String email) {
         //valid email format
         String emailRegex = "[a-zA-Z0-9._-]+@[a-zA-Z]+\\.+[a-zA-Z]+";
         return Pattern.matches(emailRegex, email);
     }
 
-    public boolean validPassword(String password) {
+    public static boolean validPassword(String password) {
         //Minimum 8 characters, min one uppercase letter, min one number
         String passwordRegex = "^(?=.*[A-Z])(?=.*\\d).{8,}$";
         return Pattern.matches(passwordRegex, password);

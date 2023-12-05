@@ -93,10 +93,10 @@ public class DBHelper extends SQLiteOpenHelper {
                 "user_type," +
                 "specialties" +
                 ") " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?)", valuesToInsert);
+                "VALUES (?, ?, ?, ?, ?, ?, ?,?)", valuesToInsert);
 
         // inserting dummy patient credentials into the DB
-        valuesToInsert = new String[]{"John", "Doe", "patient1@docuapp.com", "Hello123", "1234567890", "123 Hex Dr.", "314226975", UserType.PATIENT.type};
+        valuesToInsert = new String[]{"John", "Doe", "patient@docuapp.com", "Hello123", "1234567890", "123 Hex Dr.", "314226975", UserType.PATIENT.type};
         sqLiteDatabase.execSQL("INSERT INTO users (" +
                 "firstname, " +
                 "lastname, " +
